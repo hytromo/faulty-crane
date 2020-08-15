@@ -8,18 +8,18 @@ import (
 )
 
 type CleanCliOptions struct {
-	subcommandEnabled bool
-	dryRun            bool
+	SubcommandEnabled bool
+	DryRun            bool
 }
 
 type ConfigureCliOptions struct {
-	subcommandEnabled bool
-	config            string
+	SubcommandEnabled bool
+	Config            string
 }
 
 type CliOptions struct {
-	clean     CleanCliOptions
-	configure ConfigureCliOptions
+	Clean     CleanCliOptions
+	Configure ConfigureCliOptions
 }
 
 func exitWithWrongOptionsMessage(subCommandsMap map[string]func()) {
@@ -44,15 +44,15 @@ func Parse(args []string) CliOptions {
 
 	subCommandsMap := map[string]func(){
 		cleanSubCmd: func() {
-			cliOptions.clean.subcommandEnabled = true
+			cliOptions.Clean.SubcommandEnabled = true
 			cleanCmd := flag.NewFlagSet(cleanSubCmd, flag.ExitOnError)
-			cleanCmd.BoolVar(&cliOptions.clean.dryRun, "dry-run", false, "just output what is expected to be deleted")
+			cleanCmd.BoolVar(&cliOptions.Clean.DryRun, "dry-run", false, "just output what is expected to be deleted")
 			cleanCmd.Parse(args[2:])
 		},
 		configureSubCmd: func() {
-			cliOptions.configure.subcommandEnabled = true
+			cliOptions.Configure.SubcommandEnabled = true
 			configureCmd := flag.NewFlagSet(configureSubCmd, flag.ExitOnError)
-			configureCmd.StringVar(&cliOptions.configure.config, "o", "faulty-crane.json", "the file to save the configuration to")
+			configureCmd.StringVar(&cliOptions.Configure.Config, "o", "faulty-crane.json", "the file to save the configuration to")
 			configureCmd.Parse(args[2:])
 		},
 	}
