@@ -1,9 +1,9 @@
-package argsParser
+package argsparser
 
 import (
+	"errors"
 	"flag"
 	"fmt"
-	"os"
 	"strings"
 )
 
@@ -22,7 +22,7 @@ type CliOptions struct {
 	Configure ConfigureCliOptions
 }
 
-func exitWithWrongOptionsMessage(subCommandsMap map[string]func()) {
+func getWrongOptionsError(subCommandsMap map[string]func()) (err error) {
 	allSubcommands := make([]string, len(subCommandsMap))
 
 	i := 0
@@ -31,12 +31,18 @@ func exitWithWrongOptionsMessage(subCommandsMap map[string]func()) {
 		i++
 	}
 
-	fmt.Println("Please specify one of the valid subcommands:", strings.Join(allSubcommands, ", "))
-	fmt.Println("You can use the -h/--help switch on the subcommands for further assistance on their usage")
-	os.Exit(1)
+	return errors.New(
+		fmt.Sprintln(
+			"Please specify one of the valid subcommands:",
+			strings.Join(allSubcommands, ", "),
+			"\nYou can use the -h/--help switch on the subcommands for further assistance on their usage",
+		),
+	)
 }
 
-func Parse(args []string) CliOptions {
+// Parse parses a list of strings as cli options and returns the final configuration.
+// Returns an error if the list of strings cannot be parsed.
+func Parse(args []string) (CliOptions, error) {
 	cleanSubCmd := "clean"
 	configureSubCmd := "configure"
 
@@ -58,16 +64,16 @@ func Parse(args []string) CliOptions {
 	}
 
 	if len(args) < 2 {
-		exitWithWrongOptionsMessage(subCommandsMap)
+		return cliOptions, getWrongOptionsError(subCommandsMap)
 	}
 
 	populateCliOptionsOfSubcommand, subcommandExists := subCommandsMap[args[1]]
 
 	if !subcommandExists {
-		exitWithWrongOptionsMessage(subCommandsMap)
+		return cliOptions, getWrongOptionsError(subCommandsMap)
 	}
 
 	populateCliOptionsOfSubcommand()
 
-	return cliOptions
+	return cliOptions, nil
 }
