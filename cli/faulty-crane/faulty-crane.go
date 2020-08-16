@@ -9,7 +9,6 @@ import (
 )
 
 func main() {
-	fmt.Println("New version v5")
 	cliOptions := argsParser.Parse(os.Args)
 
 	fmt.Printf("parsed cli options is: %+v\n", cliOptions)
