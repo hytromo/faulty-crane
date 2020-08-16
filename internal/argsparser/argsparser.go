@@ -7,27 +7,30 @@ import (
 	"strings"
 )
 
-type CleanCliOptions struct {
+// CleanSubcommandOptions defines the options of the clean subcommand
+type CleanSubcommandOptions struct {
 	SubcommandEnabled bool
 	DryRun            bool
 }
 
-type ConfigureCliOptions struct {
+// ConfigureSubcommandOptions defines the options of the configure subcommand
+type ConfigureSubcommandOptions struct {
 	SubcommandEnabled bool
 	Config            string
 }
 
-type CliOptions struct {
-	Clean     CleanCliOptions
-	Configure ConfigureCliOptions
+// AppOptions groups all the possible application options in a single struct
+type AppOptions struct {
+	Clean     CleanSubcommandOptions
+	Configure ConfigureSubcommandOptions
 }
 
 func getWrongOptionsError(subCommandsMap map[string]func()) (err error) {
 	allSubcommands := make([]string, len(subCommandsMap))
 
 	i := 0
-	for k := range subCommandsMap {
-		allSubcommands[i] = k
+	for subcommand := range subCommandsMap {
+		allSubcommands[i] = subcommand
 		i++
 	}
 
@@ -42,11 +45,11 @@ func getWrongOptionsError(subCommandsMap map[string]func()) (err error) {
 
 // Parse parses a list of strings as cli options and returns the final configuration.
 // Returns an error if the list of strings cannot be parsed.
-func Parse(args []string) (CliOptions, error) {
+func Parse(args []string) (AppOptions, error) {
 	cleanSubCmd := "clean"
 	configureSubCmd := "configure"
 
-	var cliOptions CliOptions
+	var cliOptions AppOptions
 
 	subCommandsMap := map[string]func(){
 		cleanSubCmd: func() {
@@ -67,13 +70,13 @@ func Parse(args []string) (CliOptions, error) {
 		return cliOptions, getWrongOptionsError(subCommandsMap)
 	}
 
-	populateCliOptionsOfSubcommand, subcommandExists := subCommandsMap[args[1]]
+	parseCliOptionsOfSubcommand, subcommandExists := subCommandsMap[args[1]]
 
 	if !subcommandExists {
 		return cliOptions, getWrongOptionsError(subCommandsMap)
 	}
 
-	populateCliOptionsOfSubcommand()
+	parseCliOptionsOfSubcommand()
 
 	return cliOptions, nil
 }

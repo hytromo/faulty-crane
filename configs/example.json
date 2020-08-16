@@ -1,0 +1,11 @@
+{
+	"containerRegistry": "gcr",
+	"kubernetesClusters": [
+		{
+			"kubectl_context": "gke_tourpanda-staging_europe-west1-c_staging"
+		}
+	],
+	"skip_image_hashes": [
+		"123123"
+	]
+}

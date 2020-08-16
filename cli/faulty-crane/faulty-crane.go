@@ -10,17 +10,17 @@ import (
 )
 
 func main() {
-	cliOptions, err := argsparser.Parse(os.Args)
+	appOptions, err := argsparser.Parse(os.Args)
 
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	fmt.Printf("parsed cli options is: %+v\n", cliOptions)
+	fmt.Printf("parsed cli options is: %+v\n", appOptions)
 
-	if cliOptions.Clean.SubcommandEnabled {
+	if appOptions.Clean.SubcommandEnabled {
 
-	} else if cliOptions.Configure.SubcommandEnabled {
-		configurationhelper.CreateNewConfiguration(cliOptions.Configure)
+	} else if appOptions.Configure.SubcommandEnabled {
+		configurationhelper.CreateNew(appOptions.Configure)
 	}
 }
