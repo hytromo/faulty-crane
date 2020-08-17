@@ -6,6 +6,7 @@ import (
 
 	"github.com/hytromo/faulty-crane/internal/ask"
 	"github.com/hytromo/faulty-crane/internal/utils/stringutil"
+	color "github.com/logrusorgru/aurora"
 	"maze.io/x/duration"
 )
 
@@ -38,7 +39,7 @@ func isGCR(registryLink string) bool {
 func askContainerRegistryLink() string {
 	for {
 		registryLink := ask.Str(ask.Question{
-			Description: "Container registry link for cleanup (e.g. https://eu.gcr.io/v2/project-name)",
+			Description: fmt.Sprintf("Container %v for cleanup (e.g. https://eu.gcr.io/v2/project-name)", color.Green("registry link")),
 		})
 
 		if !isGCR(registryLink) {
@@ -52,7 +53,7 @@ func askContainerRegistryLink() string {
 func askContainerRegistryKey(containerRegistryLink string) string {
 	if isGCR(containerRegistryLink) {
 		return ask.Str(ask.Question{
-			Description: "Access token (gcloud auth print-access-token)",
+			Description: fmt.Sprintf("%v (gcloud auth print-access-token)", color.Green("Access token")),
 		})
 	}
 
@@ -62,7 +63,7 @@ func askContainerRegistryKey(containerRegistryLink string) string {
 func askYoungerThan() string {
 	for {
 		youngerThan := ask.Str(ask.Question{
-			Description: "Keep images younger than (e.g. 10d3h, empty=ignore age)",
+			Description: fmt.Sprintf("Keep images %v (e.g. 10d3h, empty=ignore age)", color.Green("younger than")),
 		})
 
 		if youngerThan == "" {
@@ -82,19 +83,19 @@ func askYoungerThan() string {
 }
 
 func askKubernetesClusters() []string {
-	return askListOfStrings("Keep images used in k8s cluster context")
+	return askListOfStrings(fmt.Sprintf("Keep images used in %v", color.Green("k8s cluster context")))
 }
 
 func askImageTags() []string {
-	return askListOfStrings("Keep images having tag")
+	return askListOfStrings(fmt.Sprintf("Keep images having %v", color.Green("tag")))
 }
 
 func askImageDigests() []string {
-	return askListOfStrings("Keep images having digest")
+	return askListOfStrings(fmt.Sprintf("Keep images having %v", color.Green("digest")))
 }
 
 func askImageIds() []string {
-	return askListOfStrings("Keep images having id")
+	return askListOfStrings(fmt.Sprintf("Keep images having %v", color.Green("id")))
 }
 
 // UserInput is a struct holding the user's answers

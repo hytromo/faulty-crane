@@ -7,6 +7,7 @@ import (
 
 	"github.com/hytromo/faulty-crane/internal/argsparser"
 	"github.com/hytromo/faulty-crane/internal/configurationhelper"
+	color "github.com/logrusorgru/aurora"
 )
 
 func main() {
@@ -16,12 +17,10 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	fmt.Printf("parsed cli options is: %+v\n", appOptions)
-
 	if appOptions.Clean.SubcommandEnabled {
 
 	} else if appOptions.Configure.SubcommandEnabled {
 		configurationhelper.CreateNew(appOptions.Configure)
-		fmt.Printf("Configuration written in %v\n", appOptions.Configure.Config)
+		fmt.Printf("Configuration written in %v\n", color.Green(appOptions.Configure.Config))
 	}
 }
