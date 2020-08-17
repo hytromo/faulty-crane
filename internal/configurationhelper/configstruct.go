@@ -5,7 +5,8 @@ type kubernetesCluster struct {
 }
 
 type containerRegistry struct {
-	Type string
+	Link   string
+	Access string
 }
 
 type usedIn struct {
@@ -13,10 +14,9 @@ type usedIn struct {
 }
 
 type image struct {
-	Tags         []string
-	Digests      []string
-	IDs          []string
-	Repositories []string
+	Tags    []string
+	Digests []string
+	IDs     []string
 }
 
 type keep struct {

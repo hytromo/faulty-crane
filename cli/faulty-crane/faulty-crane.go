@@ -22,5 +22,6 @@ func main() {
 
 	} else if appOptions.Configure.SubcommandEnabled {
 		configurationhelper.CreateNew(appOptions.Configure)
+		fmt.Printf("Configuration written in %v\n", appOptions.Configure.Config)
 	}
 }

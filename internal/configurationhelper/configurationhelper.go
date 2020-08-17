@@ -10,7 +10,8 @@ import (
 func constructConfigurationFromAnswers(answers UserInput) Configuration {
 	config := Configuration{}
 	config.ContainerRegistry = containerRegistry{
-		Type: answers.containerRegistry,
+		Access: answers.containerRegistryAccess,
+		Link:   answers.containerRegistryLink,
 	}
 
 	config.Keep.YoungerThan = answers.youngerThan
@@ -24,7 +25,6 @@ func constructConfigurationFromAnswers(answers UserInput) Configuration {
 	config.Keep.Image.Tags = answers.imageTags
 	config.Keep.Image.Digests = answers.imageDigests
 	config.Keep.Image.IDs = answers.imageIDs
-	config.Keep.Image.Repositories = answers.imageRepositories
 
 	return config
 }

@@ -1,6 +1,7 @@
 {
 	"ContainerRegistry": {
-		"Type": "gcr"
+		"Link": "https://eu.gcr.io/v2/faulty-crane-testing",
+		"Access": "yb29.a0BfH6SMCUt9AnZz86Q0-KAzBGqZxs5cykYLc-JYfX8IbwZf4_PIoADfSVjUBNTlk2LhAf_dWFygHMOYTwOuTayjg3BtXYMrb_QYmJ8pX1tXAXO3g5RkTuNlu1KD3MrN4pPdckGL8fyy8RdrXI6rwriSN24kagx0_2DMK1bAUAa9M"
 	},
 	"Keep": {
 		"YoungerThan": "10d",
@@ -20,9 +21,6 @@
 			],
 			"IDs": [
 				"sha256:41e3552d394f41165af8cd5c0b29b636e26e7f240ed47b38cbe0b08125b53455"
-			],
-			"Repositories": [
-				"eu.gcr.io/tourpanda-staging/tourpanda/psql-obfuscated"
 			]
 		}
 	}
