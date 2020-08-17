@@ -3,20 +3,20 @@ package configurationhelper
 import (
 	"log"
 
-	"github.com/hytromo/faulty-crane/internal/argsparser"
+	"github.com/hytromo/faulty-crane/internal/configuration"
 	"github.com/hytromo/faulty-crane/internal/utils/fileutil"
 )
 
-func constructConfigurationFromAnswers(answers UserInput) Configuration {
-	config := Configuration{}
-	config.ContainerRegistry = containerRegistry{
+func constructConfigurationFromAnswers(answers UserInput) configuration.Configuration {
+	config := configuration.Configuration{}
+	config.ContainerRegistry = configuration.ContainerRegistry{
 		Access: answers.containerRegistryAccess,
 		Link:   answers.containerRegistryLink,
 	}
 
 	config.Keep.YoungerThan = answers.youngerThan
 
-	config.Keep.UsedIn.KubernetesClusters = make([]kubernetesCluster, len(answers.kubernetesClusters))
+	config.Keep.UsedIn.KubernetesClusters = make([]configuration.KubernetesCluster, len(answers.kubernetesClusters))
 
 	for i, cluster := range answers.kubernetesClusters {
 		config.Keep.UsedIn.KubernetesClusters[i].Context = cluster
@@ -29,7 +29,7 @@ func constructConfigurationFromAnswers(answers UserInput) Configuration {
 	return config
 }
 
-func saveConfig(path string, config Configuration) {
+func saveConfig(path string, config configuration.Configuration) {
 	err := fileutil.SaveJSON(path, config)
 
 	if err != nil {
@@ -38,7 +38,7 @@ func saveConfig(path string, config Configuration) {
 }
 
 // CreateNew asks the user for configuration input and then creates a configuration file based on the answers
-func CreateNew(params argsparser.ConfigureSubcommandOptions) {
+func CreateNew(params configuration.ConfigureSubcommandOptions) {
 	answers := AskUserInput()
 	config := constructConfigurationFromAnswers(answers)
 	saveConfig(params.Config, config)
