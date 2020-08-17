@@ -1,11 +1,29 @@
 {
-	"containerRegistry": "gcr",
-	"kubernetesClusters": [
-		{
-			"kubectl_context": "gke_tourpanda-staging_europe-west1-c_staging"
+	"ContainerRegistry": {
+		"Type": "gcr"
+	},
+	"Keep": {
+		"YoungerThan": "10d",
+		"UsedIn": {
+			"KubernetesClusters": [
+				{
+					"Context": "gke_tourpanda-staging_europe-west1-c_staging"
+				}
+			]
+		},
+		"Image": {
+			"Tags": [
+				"latest"
+			],
+			"Digests": [
+				"sha256:3dd80bab6ab23ca173633a7b24f7624609c4fd9605a36c1ad49b15ddfa527afe"
+			],
+			"IDs": [
+				"sha256:41e3552d394f41165af8cd5c0b29b636e26e7f240ed47b38cbe0b08125b53455"
+			],
+			"Repositories": [
+				"eu.gcr.io/tourpanda-staging/tourpanda/psql-obfuscated"
+			]
 		}
-	],
-	"skip_image_hashes": [
-		"123123"
-	]
+	}
 }
