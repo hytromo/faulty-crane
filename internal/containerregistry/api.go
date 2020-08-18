@@ -6,7 +6,8 @@ package containerregistry
 
 import (
 	"encoding/json"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/hytromo/faulty-crane/internal/utils/stringutil"
 )

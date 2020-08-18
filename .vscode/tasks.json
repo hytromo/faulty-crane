@@ -4,7 +4,7 @@
 		{
 			"label": "Go Install",
 			"type": "shell",
-			"command": "go install cli/faulty-crane/faulty-crane.go",
+			"command": "go install cli/faulty-crane/*.go",
 			"problemMatcher": [],
 			"group": {
 				"kind": "build",

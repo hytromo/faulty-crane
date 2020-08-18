@@ -1,7 +1,7 @@
 package configurationhelper
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/hytromo/faulty-crane/internal/configuration"
 	"github.com/hytromo/faulty-crane/internal/utils/fileutil"

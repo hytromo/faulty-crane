@@ -2,9 +2,10 @@ package containerregistry
 
 import (
 	"io/ioutil"
-	"log"
 	"net/http"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const baseURL = "https://eu.gcr.io/v2"
@@ -24,7 +25,7 @@ func (gcrClient GCRClient) getRequestTo(urlSuffix string) []byte {
 			log.Fatalf("HTTP request failed many times, fatal error %v\n", err.Error())
 		}
 
-		log.Printf("HTTP request failed with %v, retrying...\n", err.Error())
+		log.Infof("HTTP request failed with %v, retrying...\n", err.Error())
 
 		triesCount++
 

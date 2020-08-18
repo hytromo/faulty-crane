@@ -2,8 +2,10 @@ package argsparser
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/hytromo/faulty-crane/internal/configuration"
 )
@@ -12,7 +14,7 @@ func replaceMissingAppOptionsFromConfig(appOptions *configuration.AppOptions, co
 	configBytes, err := ioutil.ReadFile(configPath)
 
 	if err != nil {
-		log.Fatalf("Could not read configuration file %v: %v\n", configPath, err)
+		log.Fatal(fmt.Sprintf("Could not read configuration file %v: %v\n", configPath, err))
 	}
 
 	configOptions := configuration.Configuration{}
@@ -20,7 +22,7 @@ func replaceMissingAppOptionsFromConfig(appOptions *configuration.AppOptions, co
 	err = json.Unmarshal([]byte(configBytes), &configOptions)
 
 	if err != nil {
-		log.Fatalf("Invalid format of configuration file %v: %v\n", configPath, err)
+		log.Fatal(fmt.Sprintf("Invalid format of configuration file %v: %v\n", configPath, err))
 	}
 
 	// cli options override config options, so config options should fill in the blanks only

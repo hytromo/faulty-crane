@@ -1,8 +1,9 @@
 package containerregistry
 
 import (
-	"fmt"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // GCRClient is used for creating Google Container Registry clients
@@ -12,6 +13,7 @@ type GCRClient struct {
 	client    *http.Client
 }
 
+// ContainerImage contains all the data that are relevant to an image on the registry
 type ContainerImage struct {
 	Link string
 }
@@ -27,7 +29,7 @@ func MakeGCRClient(client GCRClient) GCRClient {
 func (gcrClient GCRClient) GetAllImages() []ContainerImage {
 	repositories := gcrClient.getRepositories()
 
-	fmt.Println("Catalog contains", len(repositories), "repos")
+	log.Info("Catalog contains", len(repositories), "repos")
 
 	if len(repositories) == 0 {
 		return nil

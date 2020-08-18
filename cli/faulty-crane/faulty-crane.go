@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/hytromo/faulty-crane/internal/argsparser"
 	"github.com/hytromo/faulty-crane/internal/configurationhelper"
@@ -12,6 +13,8 @@ import (
 )
 
 func main() {
+	initLogging()
+
 	appOptions, err := argsparser.Parse(os.Args)
 
 	if err != nil {
