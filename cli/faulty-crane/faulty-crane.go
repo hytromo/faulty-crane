@@ -7,6 +7,7 @@ import (
 
 	"github.com/hytromo/faulty-crane/internal/argsparser"
 	"github.com/hytromo/faulty-crane/internal/configurationhelper"
+	"github.com/hytromo/faulty-crane/internal/containerregistry"
 	color "github.com/logrusorgru/aurora"
 )
 
@@ -19,6 +20,12 @@ func main() {
 
 	if appOptions.Clean.SubcommandEnabled {
 		fmt.Printf("App options is %+v\n", appOptions)
+		client := containerregistry.MakeGCRClient(containerregistry.GCRClient{
+			Link:      appOptions.Clean.ContainerRegistry.Link,
+			AccessKey: appOptions.Clean.ContainerRegistry.Access,
+		})
+
+		client.GetAllImages()
 	} else if appOptions.Configure.SubcommandEnabled {
 		configurationhelper.CreateNew(appOptions.Configure)
 		fmt.Printf("Configuration written in %v\n", color.Green(appOptions.Configure.Config))

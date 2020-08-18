@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-docker build -t fault-crane-test:latest .
+docker build -t faulty-crane-test:latest .
