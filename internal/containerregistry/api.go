@@ -15,7 +15,7 @@ import (
 // catalogDTO is the Data Transfer Object for the catalog api call
 type catalogDTO struct {
 	// Next is used for pagination purposes, it contains the next URL we need to GET for the next page
-	Next         string `json:",omitempty"`
+	Next         string
 	Repositories []Repository
 }
 
@@ -45,7 +45,7 @@ func (gcrClient GCRClient) getRepositories() []Repository {
 			break
 		} else { // more pages to GET
 			// remove the prefix of the link as our gcr client works with suffixes
-			catalogResp.Next = stringutil.TrimLeftChars(catalogResp.Next, len(gcrClient.Link))
+			catalogResp.Next = stringutil.TrimLeftChars(catalogResp.Next, len(gcrClient.getBaseURL()))
 			if catalogResp.Next[0] != '/' {
 				catalogResp.Next = "/" + catalogResp.Next
 			}

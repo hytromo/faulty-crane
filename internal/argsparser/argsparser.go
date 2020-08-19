@@ -46,7 +46,7 @@ func Parse(args []string) (configuration.AppOptions, error) {
 
 			cleanCmd.StringVar(&appOptions.Clean.Config, "config", "", "path to the configuration file; can be created through 'faulty-crane configure'; other options can override the configuration")
 
-			cleanCmd.StringVar(&appOptions.Clean.ContainerRegistry.Link, "registry", "", "the registry to clean, e.g. https://eu.gcr.io/v2/project-name/")
+			cleanCmd.StringVar(&appOptions.Clean.ContainerRegistry.Host, "registry", "", "the registry to clean, e.g. eu.gcr.io")
 			cleanCmd.StringVar(&appOptions.Clean.ContainerRegistry.Access, "key", "", "the registry access key, e.g. 'gcloud auth print-access-token'")
 
 			cleanCmd.StringVar(&appOptions.Clean.Keep.YoungerThan, "younger-than", "", "images younger than this value will be kept; provide a duration value, e.g. '10d', '1w3d' or '1d3h'")

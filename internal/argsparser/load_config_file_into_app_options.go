@@ -26,8 +26,8 @@ func replaceMissingAppOptionsFromConfig(appOptions *configuration.AppOptions, co
 	}
 
 	// cli options override config options, so config options should fill in the blanks only
-	if appOptions.Clean.ContainerRegistry.Link == "" {
-		appOptions.Clean.ContainerRegistry.Link = configOptions.ContainerRegistry.Link
+	if appOptions.Clean.ContainerRegistry.Host == "" {
+		appOptions.Clean.ContainerRegistry.Host = configOptions.ContainerRegistry.Host
 	}
 
 	if appOptions.Clean.ContainerRegistry.Access == "" {

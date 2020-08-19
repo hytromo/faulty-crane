@@ -11,7 +11,7 @@ func constructConfigurationFromAnswers(answers UserInput) configuration.Configur
 	config := configuration.Configuration{}
 	config.ContainerRegistry = configuration.ContainerRegistry{
 		Access: answers.containerRegistryAccess,
-		Link:   answers.containerRegistryLink,
+		Host:   answers.containerRegistryLink,
 	}
 
 	config.Keep.YoungerThan = answers.youngerThan

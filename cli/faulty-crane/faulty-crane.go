@@ -24,7 +24,7 @@ func main() {
 	if appOptions.Clean.SubcommandEnabled {
 		fmt.Printf("App options is %+v\n", appOptions)
 		client := containerregistry.MakeGCRClient(containerregistry.GCRClient{
-			Link:      appOptions.Clean.ContainerRegistry.Link,
+			Host:      appOptions.Clean.ContainerRegistry.Host,
 			AccessKey: appOptions.Clean.ContainerRegistry.Access,
 		})
 

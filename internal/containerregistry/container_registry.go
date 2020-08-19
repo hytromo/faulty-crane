@@ -8,7 +8,7 @@ import (
 
 // GCRClient is used for creating Google Container Registry clients
 type GCRClient struct {
-	Link      string
+	Host      string
 	AccessKey string
 	client    *http.Client
 }

@@ -8,10 +8,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const baseURL = "https://eu.gcr.io/v2"
+// getBaseUrl returns the base url for the api requests, e.g. where the container registry root is
+func (gcrClient GCRClient) getBaseURL() string {
+	return "https://" + gcrClient.Host + "/v2"
+}
 
 func (gcrClient GCRClient) newHTTPRequest(urlSuffix string) *http.Request {
-	req, _ := http.NewRequest("GET", baseURL+urlSuffix, nil)
+	req, _ := http.NewRequest("GET", gcrClient.getBaseURL()+urlSuffix, nil)
 	req.SetBasicAuth("_token", gcrClient.AccessKey)
 	return req
 }

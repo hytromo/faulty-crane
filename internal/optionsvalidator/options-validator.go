@@ -13,7 +13,7 @@ func Validate(options configuration.AppOptions) error {
 			return errors.New("Please specify a configuration file to save your answers to")
 		}
 	} else if options.Clean.SubcommandEnabled {
-		if options.Clean.ContainerRegistry.Link == "" || options.Clean.ContainerRegistry.Access == "" {
+		if options.Clean.ContainerRegistry.Host == "" || options.Clean.ContainerRegistry.Access == "" {
 			return errors.New("Please specify a valid container registry")
 		}
 	}

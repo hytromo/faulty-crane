@@ -2,7 +2,6 @@ package configurationhelper
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/hytromo/faulty-crane/internal/ask"
 	"github.com/hytromo/faulty-crane/internal/utils/stringutil"
@@ -32,14 +31,19 @@ func askListOfStrings(question string) []string {
 	return answers
 }
 
-func isGCR(registryLink string) bool {
-	return strings.Contains(registryLink, "gcr.io/") && strings.Contains(registryLink, "/v2/")
+var gcrRegistryHosts = []string{
+	"gcr.io", "eu.gcr.io", "us.gcr.io", "asia.gcr.io",
 }
 
-func askContainerRegistryLink() string {
+func isGCR(registryLink string) bool {
+	return registryLink == "gcr.io" || registryLink == "eu.gcr.io" || registryLink == "us.gcr.io" || registryLink == "asia.gcr.io"
+}
+
+func askContainerRegistryHost() string {
 	for {
 		registryLink := ask.Str(ask.Question{
-			Description: fmt.Sprintf("Container %v for cleanup (e.g. https://eu.gcr.io/v2/project-name)", color.Green("registry link")),
+			Description:     fmt.Sprintf("Container %v for cleanup", color.Green("registry link")),
+			PossibleAnswers: gcrRegistryHosts,
 		})
 
 		if !isGCR(registryLink) {
@@ -111,7 +115,7 @@ type UserInput struct {
 
 // AskUserInput asks for user input in order to create a new configuration
 func AskUserInput() UserInput {
-	containerRegistryLink := askContainerRegistryLink()
+	containerRegistryLink := askContainerRegistryHost()
 
 	return UserInput{
 		containerRegistryLink:   containerRegistryLink,

@@ -1,6 +1,6 @@
 {
 	"ContainerRegistry": {
-		"Link": "https://eu.gcr.io/v2/faulty-crane-testing",
+		"Host": "eu.gcr.io",
 		"Access": "yb29.a0BfH6SMCUt9AnZz86Q0-KAzBGqZxs5cykYLc-JYfX8IbwZf4_PIoADfSVjUBNTlk2LhAf_dWFygHMOYTwOuTayjg3BtXYMrb_QYmJ8pX1tXAXO3g5RkTuNlu1KD3MrN4pPdckGL8fyy8RdrXI6rwriSN24kagx0_2DMK1bAUAa9M"
 	},
 	"Keep": {

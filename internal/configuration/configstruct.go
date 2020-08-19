@@ -7,7 +7,7 @@ type KubernetesCluster struct {
 
 // ContainerRegistry keeps the needed data for the container registry
 type ContainerRegistry struct {
-	Link   string
+	Host   string
 	Access string
 }
 
