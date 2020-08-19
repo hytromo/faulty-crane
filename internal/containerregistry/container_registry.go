@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+
+	"github.com/cheggaaa/pb/v3"
+	log "github.com/sirupsen/logrus"
 )
 
 // GCRClient is used for creating Google Container Registry clients
@@ -39,28 +42,38 @@ func (gcrClient GCRClient) imagesRepoFetchWorker(repositories <-chan Repository,
 
 // GetAllImages returns all the images in a docker container registry by spawning multiple workers to make it go faster
 func (gcrClient GCRClient) GetAllImages() []ContainerImage {
-	repositories := gcrClient.getRepositories()
+	log.Info("Getting all the repos of the registry...")
 
-	repositoriesChannel := make(chan Repository, len(repositories))
-	containerImagesChannel := make(chan []ContainerImage, len(repositories))
+	repositories := gcrClient.getRepositories()
+	repositoriesCount := len(repositories)
+
+	bar := pb.Full.Start(repositoriesCount)
+
+	repositoriesChannel := make(chan Repository, repositoriesCount)
+	containerImagesChannel := make(chan []ContainerImage, repositoriesCount)
 
 	// spawn max 40 goroutines, if repos are less than 40, try to GET them all concurrently
-	workersNum := int(math.Min(40, float64(len(repositories))))
+	workersNum := int(math.Min(40, float64(repositoriesCount)))
+
+	log.Info("Fetching the images of ", repositoriesCount, " repo(s), using ", workersNum, " routines")
 
 	for i := 1; i <= workersNum; i++ {
 		go gcrClient.imagesRepoFetchWorker(repositoriesChannel, containerImagesChannel)
 	}
 
 	for _, repo := range repositories {
+		// feed the jobs to the workers
 		repositoriesChannel <- repo
 	}
 
-	// after all the channels have been filled, it's time to read from them now
+	// while the jobs are being done by the workers, we are merging all the results into one
 	allImages := []ContainerImage{}
 	for range repositories {
 		allImages = append(allImages, <-containerImagesChannel...)
+		bar.Increment()
 	}
 
+	bar.Finish()
 	fmt.Println("All images' length is", len(allImages))
 
 	return allImages
