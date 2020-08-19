@@ -32,9 +32,8 @@ func MakeGCRClient(client GCRClient) GCRClient {
 }
 
 func (gcrClient GCRClient) imagesRepoFetchWorker(repositories <-chan Repository, containerImages chan<- []ContainerImage) {
-	for job := range repositories {
-		repoImages := gcrClient.listTags(job)
-		containerImages <- repoImages
+	for repo := range repositories {
+		containerImages <- gcrClient.listTags(repo)
 	}
 }
 
