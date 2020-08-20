@@ -38,6 +38,10 @@ func replaceMissingAppOptionsFromConfig(appOptions *configuration.AppOptions, co
 		appOptions.Clean.Keep.UsedIn.KubernetesClusters = configOptions.Keep.UsedIn.KubernetesClusters
 	}
 
+	if appOptions.Clean.Keep.YoungerThan == "" {
+		appOptions.Clean.Keep.YoungerThan = configOptions.Keep.YoungerThan
+	}
+
 	if len(appOptions.Clean.Keep.Image.Digests) == 0 {
 		appOptions.Clean.Keep.Image.Digests = configOptions.Keep.Image.Digests
 	}
@@ -46,7 +50,7 @@ func replaceMissingAppOptionsFromConfig(appOptions *configuration.AppOptions, co
 		appOptions.Clean.Keep.Image.Tags = configOptions.Keep.Image.Tags
 	}
 
-	if len(appOptions.Clean.Keep.Image.IDs) == 0 {
-		appOptions.Clean.Keep.Image.IDs = configOptions.Keep.Image.IDs
+	if len(appOptions.Clean.Keep.Image.Repositories) == 0 {
+		appOptions.Clean.Keep.Image.Repositories = configOptions.Keep.Image.Repositories
 	}
 }

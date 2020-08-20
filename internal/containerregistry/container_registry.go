@@ -1,7 +1,6 @@
 package containerregistry
 
 import (
-	"fmt"
 	"math"
 	"net/http"
 
@@ -16,6 +15,12 @@ type GCRClient struct {
 	client    *http.Client
 }
 
+// Repository is a struct that holds information about a container registry's repository
+type Repository struct {
+	Link   string
+	Images []ContainerImage
+}
+
 // ContainerImage contains all the data that are relevant to an image on the registry
 type ContainerImage struct {
 	ImageSizeBytes string
@@ -25,6 +30,7 @@ type ContainerImage struct {
 	TimeCreatedMs  string
 	TimeUploadedMs string
 	Digest         string
+	Repo           string // Repo is the name of the image's repository without the tag in the form e.g. eu.gcr.io/faulty-crane-project/faulty-crane-test
 }
 
 // MakeGCRClient builds a new GCRClient instance, adding the missing default values e.g. http client
@@ -34,14 +40,14 @@ func MakeGCRClient(client GCRClient) GCRClient {
 	return gcrClient
 }
 
-func (gcrClient GCRClient) imagesRepoFetchWorker(repositories <-chan Repository, containerImages chan<- []ContainerImage) {
-	for repo := range repositories {
-		containerImages <- gcrClient.listTags(repo)
+func (gcrClient GCRClient) fetchRepoImagesWorker(repositoryLinks <-chan string, parsedRepositories chan<- Repository) {
+	for repo := range repositoryLinks {
+		parsedRepositories <- gcrClient.listTags(repo)
 	}
 }
 
-// GetAllImages returns all the images in a docker container registry by spawning multiple workers to make it go faster
-func (gcrClient GCRClient) GetAllImages() []ContainerImage {
+// GetAllRepos finds all the repositories and parses them finding the images they contain
+func (gcrClient GCRClient) GetAllRepos() []Repository {
 	log.Info("Getting all the repos of the registry...")
 
 	repositories := gcrClient.getRepositories()
@@ -49,32 +55,31 @@ func (gcrClient GCRClient) GetAllImages() []ContainerImage {
 
 	bar := pb.Full.Start(repositoriesCount)
 
-	repositoriesChannel := make(chan Repository, repositoriesCount)
-	containerImagesChannel := make(chan []ContainerImage, repositoriesCount)
+	repositoryLinksChan := make(chan string, repositoriesCount) // jobs
+	parsedReposChan := make(chan Repository, repositoriesCount) // results
 
-	// spawn max 40 goroutines, if repos are less than 40, try to GET them all concurrently
+	// spawn max 40 goroutines, if repos are less than 40, try to list them all concurrently
 	workersNum := int(math.Min(40, float64(repositoriesCount)))
 
 	log.Info("Fetching the images of ", repositoriesCount, " repo(s), using ", workersNum, " routines")
 
 	for i := 1; i <= workersNum; i++ {
-		go gcrClient.imagesRepoFetchWorker(repositoriesChannel, containerImagesChannel)
+		go gcrClient.fetchRepoImagesWorker(repositoryLinksChan, parsedReposChan)
 	}
 
 	for _, repo := range repositories {
 		// feed the jobs to the workers
-		repositoriesChannel <- repo
+		repositoryLinksChan <- repo
 	}
 
 	// while the jobs are being done by the workers, we are merging all the results into one
-	allImages := []ContainerImage{}
+	allRepos := []Repository{}
 	for range repositories {
-		allImages = append(allImages, <-containerImagesChannel...)
+		allRepos = append(allRepos, <-parsedReposChan)
 		bar.Increment()
 	}
 
 	bar.Finish()
-	fmt.Println("All images' length is", len(allImages))
 
-	return allImages
+	return allRepos
 }

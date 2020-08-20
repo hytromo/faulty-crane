@@ -9,6 +9,8 @@ import (
 	"github.com/hytromo/faulty-crane/internal/argsparser"
 	"github.com/hytromo/faulty-crane/internal/configurationhelper"
 	"github.com/hytromo/faulty-crane/internal/containerregistry"
+	"github.com/hytromo/faulty-crane/internal/imagefilters"
+	"github.com/hytromo/faulty-crane/internal/reporter"
 	color "github.com/logrusorgru/aurora"
 )
 
@@ -22,13 +24,20 @@ func main() {
 	}
 
 	if appOptions.Clean.SubcommandEnabled {
-		fmt.Printf("App options is %+v\n", appOptions)
+		options := appOptions.Clean
+
 		client := containerregistry.MakeGCRClient(containerregistry.GCRClient{
-			Host:      appOptions.Clean.ContainerRegistry.Host,
-			AccessKey: appOptions.Clean.ContainerRegistry.Access,
+			Host:      options.ContainerRegistry.Host,
+			AccessKey: options.ContainerRegistry.Access,
 		})
 
-		client.GetAllImages()
+		parsedRepos := imagefilters.Parse(client.GetAllRepos(), options.Keep)
+
+		if options.DryRun {
+			reporter.ReportRepositoriesStatus(parsedRepos)
+		} else {
+			// TODO: really clean
+		}
 	} else if appOptions.Configure.SubcommandEnabled {
 		configurationhelper.CreateNew(appOptions.Configure)
 		fmt.Printf("Configuration written in %v\n", color.Green(appOptions.Configure.Config))

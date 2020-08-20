@@ -89,9 +89,9 @@ func Parse(args []string) (configuration.AppOptions, error) {
 
 			if len(*imageIDs) > 0 {
 				imageIDsArr := strings.Split(*imageIDs, ",")
-				appOptions.Clean.Keep.Image.IDs = make([]string, len(imageIDsArr))
+				appOptions.Clean.Keep.Image.Repositories = make([]string, len(imageIDsArr))
 				for i, imageTag := range imageIDsArr {
-					appOptions.Clean.Keep.Image.IDs[i] = imageTag
+					appOptions.Clean.Keep.Image.Repositories[i] = imageTag
 				}
 			}
 

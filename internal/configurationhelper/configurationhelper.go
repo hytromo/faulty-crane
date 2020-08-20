@@ -24,7 +24,7 @@ func constructConfigurationFromAnswers(answers UserInput) configuration.Configur
 
 	config.Keep.Image.Tags = answers.imageTags
 	config.Keep.Image.Digests = answers.imageDigests
-	config.Keep.Image.IDs = answers.imageIDs
+	config.Keep.Image.Repositories = answers.imageIDs
 
 	return config
 }

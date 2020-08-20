@@ -18,9 +18,9 @@ type UsedIn struct {
 
 // Image defines various image-related fields
 type Image struct {
-	Tags    []string
-	Digests []string
-	IDs     []string
+	Tags         []string
+	Digests      []string
+	Repositories []string
 }
 
 // KeepImages specifies what conditions we should use in order to keep images from being deleted

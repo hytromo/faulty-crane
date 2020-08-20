@@ -74,9 +74,9 @@ func askYoungerThan() string {
 			break
 		}
 
-		duration, err := duration.ParseDuration(youngerThan)
+		youngerDuration, err := duration.ParseDuration(youngerThan)
 
-		if err == nil && duration.Seconds() > 0 {
+		if err == nil && youngerDuration.Seconds() > 0 {
 			return youngerThan
 		}
 

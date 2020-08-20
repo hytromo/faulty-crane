@@ -19,8 +19,8 @@
 			"Digests": [
 				"sha256:3dd80bab6ab23ca173633a7b24f7624609c4fd9605a36c1ad49b15ddfa527afe"
 			],
-			"IDs": [
-				"sha256:41e3552d394f41165af8cd5c0b29b636e26e7f240ed47b38cbe0b08125b53455"
+			"Repositories": [
+				"eu.grc.io/faulty-crane-testing/faulty-crane-test"
 			]
 		}
 	}

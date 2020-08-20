@@ -17,7 +17,7 @@ import (
 type catalogDTO struct {
 	// Next is used for pagination purposes, it contains the next URL we need to GET for the next page
 	Next         string
-	Repositories []Repository
+	Repositories []string
 }
 
 // listTagsDTO is the Data Transfer Object for the list tags api call
@@ -29,11 +29,8 @@ type listTagsDTO struct {
 	Next     string
 }
 
-// Repository describes a url where the registry holds docker images
-type Repository string
-
-func (gcrClient GCRClient) getRepositories() []Repository {
-	repositories := []Repository{}
+func (gcrClient GCRClient) getRepositories() []string {
+	repositories := []string{}
 
 	catalogResp := catalogDTO{
 		Next: "/_catalog", // initial request
@@ -65,11 +62,14 @@ func (gcrClient GCRClient) getRepositories() []Repository {
 	return repositories
 }
 
-func (gcrClient GCRClient) listTags(repository Repository) []ContainerImage {
-	containerImages := []ContainerImage{}
+func (gcrClient GCRClient) listTags(repositoryLink string) Repository {
+	repository := Repository{
+		Link:   repositoryLink,
+		Images: []ContainerImage{},
+	}
 
 	listTagsResp := listTagsDTO{
-		Next: "/" + string(repository) + "/tags/list", // initial request
+		Next: "/" + repositoryLink + "/tags/list", // initial request
 	}
 
 	for {
@@ -80,7 +80,8 @@ func (gcrClient GCRClient) listTags(repository Repository) []ContainerImage {
 
 		for digest, image := range listTagsResp.Manifest {
 			image.Digest = digest
-			containerImages = append(containerImages, image)
+			image.Repo = gcrClient.Host + "/" + repositoryLink
+			repository.Images = append(repository.Images, image)
 		}
 
 		if err != nil {
@@ -98,5 +99,5 @@ func (gcrClient GCRClient) listTags(repository Repository) []ContainerImage {
 		}
 	}
 
-	return containerImages
+	return repository
 }
