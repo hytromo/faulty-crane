@@ -61,7 +61,7 @@ func (gcrClient GCRClient) GetAllRepos() []Repository {
 	// spawn max 40 goroutines, if repos are less than 40, try to list them all concurrently
 	workersNum := int(math.Min(40, float64(repositoriesCount)))
 
-	log.Info("Fetching the images of ", repositoriesCount, " repo(s), using ", workersNum, " routines")
+	log.Info("Fetching the images of ", repositoriesCount, " repo(s), using ", workersNum, " routine(s)")
 
 	for i := 1; i <= workersNum; i++ {
 		go gcrClient.fetchRepoImagesWorker(repositoryLinksChan, parsedReposChan)

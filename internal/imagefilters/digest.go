@@ -1,5 +1,7 @@
 package imagefilters
 
+import "github.com/hytromo/faulty-crane/internal/keepreasons"
+
 func digestFilter(repos []ParsedRepo, digestsToKeep []string) {
 	if len(digestsToKeep) == 0 {
 		return
@@ -14,14 +16,14 @@ func digestFilter(repos []ParsedRepo, digestsToKeep []string) {
 	for repoIndex := range repos {
 		for imageIndex := range repos[repoIndex].Images {
 			parsedImage := repos[repoIndex].Images[imageIndex]
-			if parsedImage.KeptReason != "" {
+			if parsedImage.KeptData.Reason != keepreasons.None {
 				// image already kept for some other reason
 				continue
 			}
 
 			_, exists := digestsToKeepMap[parsedImage.Image.Digest]
 			if exists {
-				repos[repoIndex].Images[imageIndex].KeptReason = "Whitelisted digest"
+				repos[repoIndex].Images[imageIndex].KeptData.Reason = keepreasons.WhitelistedDigest
 				break
 			}
 		}

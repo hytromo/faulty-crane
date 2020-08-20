@@ -3,12 +3,13 @@ package imagefilters
 import (
 	"github.com/hytromo/faulty-crane/internal/configuration"
 	"github.com/hytromo/faulty-crane/internal/containerregistry"
+	"github.com/hytromo/faulty-crane/internal/keepreasons"
 )
 
 // ParsedImage is a container image that has gone through filters and has metadata about the results of the filtering process
 type ParsedImage struct {
-	Image      containerregistry.ContainerImage
-	KeptReason string
+	Image    containerregistry.ContainerImage
+	KeptData keepreasons.KeptData
 }
 
 // ParsedRepo is a repository that contains parsed/filtered images
@@ -17,8 +18,9 @@ type ParsedRepo struct {
 	Images []ParsedImage
 }
 
-func (parsedImage ParsedImage) parsedImageWithKeptReason(reason string) ParsedImage {
-	parsedImage.KeptReason = reason
+func (parsedImage ParsedImage) parsedImageWithKeptReason(reason keepreasons.KeptReason) ParsedImage {
+	parsedImage.KeptData.Reason = reason
+	parsedImage.KeptData.Metadata = ""
 	return parsedImage
 }
 
@@ -39,8 +41,11 @@ func imagesToParsedImages(images []containerregistry.ContainerImage) []ParsedIma
 	parsedImages := make([]ParsedImage, len(images))
 	for i, image := range images {
 		parsedImages[i] = ParsedImage{
-			Image:      image,
-			KeptReason: "",
+			Image: image,
+			KeptData: keepreasons.KeptData{
+				Reason:   keepreasons.None,
+				Metadata: "",
+			},
 		}
 	}
 	return parsedImages

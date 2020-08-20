@@ -1,10 +1,10 @@
 package imagefilters
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/hytromo/faulty-crane/internal/keepreasons"
 	log "github.com/sirupsen/logrus"
 	"maze.io/x/duration"
 )
@@ -31,13 +31,11 @@ func ageFilter(repos []ParsedRepo, keepYoungerThan string) {
 	nowMs := getMsTime()
 	youngerDurationMs := getStringDurationInMs(keepYoungerThan)
 
-	fmt.Println("Younger duration ms", youngerDurationMs)
-
 	for repoIndex := range repos {
 		for imageIndex := range repos[repoIndex].Images {
 			parsedImage := repos[repoIndex].Images[imageIndex]
 
-			if parsedImage.KeptReason != "" {
+			if parsedImage.KeptData.Reason != keepreasons.None {
 				// image already kept for some other reason
 				continue
 			}
@@ -52,11 +50,9 @@ func ageFilter(repos []ParsedRepo, keepYoungerThan string) {
 
 			ageMs := nowMs - uploadedMs
 
-			fmt.Println("Age ms", ageMs)
-
 			if ageMs < youngerDurationMs {
 				// image young enough, needs to be kept
-				repos[repoIndex].Images[imageIndex].KeptReason = "Young"
+				repos[repoIndex].Images[imageIndex].KeptData.Reason = keepreasons.Young
 			}
 		}
 	}
