@@ -102,15 +102,25 @@ func ReportRepositoriesStatus(repos []imagefilters.ParsedRepo) {
 
 	table.Render()
 
+	totalBytes := deleteTotalSizeBytes + keepTotalSizeBytes
+	totalImages := deleteCount + keepCount
+
 	fmt.Println(
 		deleteCount,
-		"image(s) will be deleted,",
-		color.Red(fmt.Sprintf("or %v", stringutil.HumanFriendlySize(deleteTotalSizeBytes))),
+		"image(s) will be deleted",
+		color.Red(
+			fmt.Sprintf(
+				"/ %v / %.3f%% of total images / %.3f%% of total size",
+				stringutil.HumanFriendlySize(deleteTotalSizeBytes),
+				float64(deleteCount)/float64(totalImages),
+				float64(deleteTotalSizeBytes)/float64(totalBytes),
+			),
+		),
 	)
 
 	fmt.Println(
 		keepCount,
 		"image(s) will be kept,",
-		color.Green(fmt.Sprintf("or %v", stringutil.HumanFriendlySize(keepTotalSizeBytes))),
+		color.Green(fmt.Sprintf("/ %v", stringutil.HumanFriendlySize(keepTotalSizeBytes))),
 	)
 }
