@@ -32,12 +32,7 @@ func ReportRepositoriesStatus(repos []imagefilters.ParsedRepo) {
 	var deleteTotalSizeBytes int64 = 0
 	var keepTotalSizeBytes int64 = 0
 
-	for index, parsedRepo := range repos {
-		if index != 0 {
-			fmt.Println("")
-			fmt.Println("")
-		}
-
+	for _, parsedRepo := range repos {
 		for _, parsedImage := range parsedRepo.Images {
 			image := parsedImage.Image
 			keptReason := parsedImage.KeptData.Reason
