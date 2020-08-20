@@ -44,6 +44,8 @@ func Parse(args []string) (configuration.AppOptions, error) {
 
 			cleanCmd.BoolVar(&appOptions.Clean.DryRun, "dry-run", false, "just output what is expected to be deleted without actually deleting anything")
 
+			cleanCmd.StringVar(&appOptions.Clean.Plan, "plan", "", "a plan file: use with -dry-run to create a new plan file containing the images marked for deletion; use without -dry-run to read from a plan file which images to delete (if a plan file is specified all the other filters are skipped/ignored)")
+
 			cleanCmd.StringVar(&appOptions.Clean.Config, "config", "", "path to the configuration file; can be created through 'faulty-crane configure'; other options can override the configuration")
 
 			cleanCmd.StringVar(&appOptions.Clean.ContainerRegistry.Host, "registry", "", "the registry to clean, e.g. eu.gcr.io")

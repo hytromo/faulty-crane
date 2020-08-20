@@ -4,6 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/hytromo/faulty-crane/internal/configuration"
+	"github.com/hytromo/faulty-crane/internal/imagefilters"
 	"github.com/hytromo/faulty-crane/internal/utils/fileutil"
 )
 
@@ -30,7 +31,7 @@ func constructConfigurationFromAnswers(answers UserInput) configuration.Configur
 }
 
 func saveConfig(path string, config configuration.Configuration) {
-	err := fileutil.SaveJSON(path, config)
+	err := fileutil.SaveJSON(path, config, false)
 
 	if err != nil {
 		log.Fatalf("Error saving configuration file: %v", err)
@@ -42,4 +43,9 @@ func CreateNew(params configuration.ConfigureSubcommandOptions) {
 	answers := AskUserInput()
 	config := constructConfigurationFromAnswers(answers)
 	saveConfig(params.Config, config)
+}
+
+// WritePlan writes the parsed repos in a plan file; the plan file can then be used to remove specific images
+func WritePlan(parsedRepos []imagefilters.ParsedRepo, planPath string) {
+	fileutil.SaveJSON(planPath, parsedRepos, true)
 }

@@ -17,6 +17,7 @@ type GCRClient struct {
 
 // Repository is a struct that holds information about a container registry's repository
 type Repository struct {
+	// Link is the relative link, also refered to as "image name" on the documentation, each repository can contain a lot of images with different tags and manifests
 	Link   string
 	Images []ContainerImage
 }

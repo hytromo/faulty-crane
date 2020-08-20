@@ -40,6 +40,8 @@ type Configuration struct {
 type CleanSubcommandOptions struct {
 	SubcommandEnabled bool
 	DryRun            bool
+	// Plan can be used either with or without dry-run to write or read a plan file, correspondingly
+	Plan string
 	// Config is where to read configuration from
 	Config            string
 	ContainerRegistry ContainerRegistry

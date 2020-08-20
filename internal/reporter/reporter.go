@@ -120,7 +120,7 @@ func ReportRepositoriesStatus(repos []imagefilters.ParsedRepo) {
 
 	fmt.Println(
 		keepCount,
-		"image(s) will be kept,",
+		"image(s) will be kept",
 		color.Green(fmt.Sprintf("/ %v", stringutil.HumanFriendlySize(keepTotalSizeBytes))),
 	)
 }

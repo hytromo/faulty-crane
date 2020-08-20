@@ -1,6 +1,7 @@
 package containerregistry
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -11,6 +12,13 @@ import (
 // getBaseUrl returns the base url for the api requests, e.g. where the container registry root is
 func (gcrClient GCRClient) getBaseURL() string {
 	return "https://" + gcrClient.Host + "/v2"
+}
+
+func (gcrClient GCRClient) newDeleteHTTPRequest(urlSuffix string) *http.Request {
+	fmt.Println("Full URL is", gcrClient.getBaseURL()+urlSuffix)
+	req, _ := http.NewRequest("DELETE", gcrClient.getBaseURL()+urlSuffix, nil)
+	req.SetBasicAuth("_token", gcrClient.AccessKey)
+	return req
 }
 
 func (gcrClient GCRClient) newHTTPRequest(urlSuffix string) *http.Request {
@@ -53,5 +61,46 @@ func (gcrClient GCRClient) getRequestTo(urlSuffix string) []byte {
 		}
 
 		return bodyBytes
+	}
+}
+
+// deleteRequestTo does a DELETE request to the container registry and retries a few times on error
+func (gcrClient GCRClient) deleteRequestTo(urlSuffix string, allowCompleteFailure bool) {
+	triesCount := 1
+
+	sleepOrExitOnError := func(err error) {
+		if triesCount > 3 && !allowCompleteFailure {
+			log.Fatalf("HTTP request failed many times, fatal error %v\n", err.Error())
+		}
+
+		log.Infof("HTTP request failed with %v, retrying...\n", err.Error())
+
+		triesCount++
+
+		time.Sleep(1000 * time.Millisecond)
+	}
+
+	for {
+		fmt.Println("Delete request step 1", triesCount)
+		resp, err := gcrClient.client.Do(
+			gcrClient.newDeleteHTTPRequest(urlSuffix),
+		)
+
+		fmt.Println("Delete request step 2")
+		if err != nil {
+			sleepOrExitOnError(err)
+			continue
+		}
+
+		fmt.Println("Delete request step 3")
+		respBody, err := ioutil.ReadAll(resp.Body)
+
+		fmt.Println("Delete request step 4", string(respBody))
+		if err != nil {
+			sleepOrExitOnError(err)
+			continue
+		}
+
+		return
 	}
 }

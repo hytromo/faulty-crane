@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	log "github.com/sirupsen/logrus"
 
@@ -35,6 +36,14 @@ func main() {
 
 		if options.DryRun {
 			reporter.ReportRepositoriesStatus(parsedRepos)
+
+			if options.Plan != "" {
+				configurationhelper.WritePlan(parsedRepos, options.Plan)
+				log.Infof(
+					"Plan saved to %v, run '%v clean -plan %v -config ...' to delete exactly the images that have been marked for deletion above",
+					options.Plan, filepath.Base(os.Args[0]), options.Plan,
+				)
+			}
 		} else {
 			// TODO: really clean
 		}
