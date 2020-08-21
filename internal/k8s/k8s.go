@@ -68,11 +68,26 @@ func NewK8s(clusters []configuration.KubernetesCluster) K8s {
 
 	clustersWithAPI := make([]ClusterWithAPI, len(clusters))
 	for clusterIndex, cluster := range clusters {
-		// TODO: from inside the cluster we just need to do: config, err := clientcmd.BuildConfigFromFlags("", "")
-		config, err := buildConfigFromFlags(cluster.Context, kubeconfig)
+		var config *rest.Config
 
-		if err != nil {
-			log.Fatal("Could not parse kubeconfig: %v", err.Error())
+		if cluster.RunningInside {
+			// this app is running inside this cluster
+			internalConfig, err := clientcmd.BuildConfigFromFlags("", "")
+
+			if err != nil {
+				log.Fatal("Could not parse kubeconfig: %v", err.Error())
+			}
+
+			config = internalConfig
+		} else {
+			// external cluster
+			externalConfig, err := buildConfigFromFlags(cluster.Context, kubeconfig)
+
+			if err != nil {
+				log.Fatal("Could not parse kubeconfig: %v", err.Error())
+			}
+
+			config = externalConfig
 		}
 
 		clientset, err := kubernetes.NewForConfig(config)
