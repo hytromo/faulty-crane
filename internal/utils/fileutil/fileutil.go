@@ -31,3 +31,32 @@ func SaveJSON(path string, dataToWrite interface{}, doCompress bool) error {
 
 	return ioutil.WriteFile(path, bytesToWrite, 0644)
 }
+
+// ReadFile returns the bytes of a file, optionally by decompressing it first
+func ReadFile(path string, uncompressData bool) ([]byte, error) {
+	initialBytes, err := ioutil.ReadFile(path)
+	writer := bytes.NewBuffer(initialBytes)
+
+	if err != nil {
+		return []byte{}, err
+	}
+
+	if !uncompressData {
+		return initialBytes, nil
+	}
+
+	gzr, err := gzip.NewReader(writer)
+
+	if err != nil {
+		return []byte{}, err
+	}
+
+	var uncompressedData bytes.Buffer
+	_, err = uncompressedData.ReadFrom(gzr)
+
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return uncompressedData.Bytes(), nil
+}

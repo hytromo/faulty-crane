@@ -27,12 +27,22 @@ func main() {
 	if appOptions.Clean.SubcommandEnabled {
 		options := appOptions.Clean
 
-		client := containerregistry.MakeGCRClient(containerregistry.GCRClient{
-			Host:      options.ContainerRegistry.Host,
-			AccessKey: options.ContainerRegistry.Access,
-		})
+		parsedRepos := []imagefilters.ParsedRepo{}
 
-		parsedRepos := imagefilters.Parse(client.GetAllRepos(), options.Keep)
+		// parsed repos are read from a plan file only if it is specified during a normal clean run
+		if !options.DryRun && options.Plan != "" {
+			// normal run, reading from an existent plan file the parsed repos
+			log.Infof("Reading from plan file %v\n", options.Plan)
+			parsedRepos = configurationhelper.ReadPlan(options.Plan)
+		} else {
+			parsedRepos = imagefilters.Parse(
+				containerregistry.MakeGCRClient(containerregistry.GCRClient{
+					Host:      options.ContainerRegistry.Host,
+					AccessKey: options.ContainerRegistry.Access,
+				}).GetAllRepos(),
+				options.Keep,
+			)
+		}
 
 		if options.DryRun {
 			reporter.ReportRepositoriesStatus(parsedRepos)
@@ -45,7 +55,7 @@ func main() {
 				)
 			}
 		} else {
-			// TODO: really clean
+			// TODO: really clean the parsed repos
 		}
 	} else if appOptions.Configure.SubcommandEnabled {
 		configurationhelper.CreateNew(appOptions.Configure)

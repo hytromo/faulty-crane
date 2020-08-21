@@ -23,7 +23,7 @@ func ReportRepositoriesStatus(repos []imagefilters.ParsedRepo) {
 	})
 
 	table := tablewriter.NewWriter(os.Stdout)
-	headers := []string{"Kept", "Repo", "Tags", "Digest", "Size", "Uploaded"}
+	headers := []string{"Kept", "Repo", "Tags", "Digest", "Size", "Cluster", "Uploaded"}
 	headersCount := len(headers)
 	table.SetHeader(headers)
 
@@ -47,12 +47,12 @@ func ReportRepositoriesStatus(repos []imagefilters.ParsedRepo) {
 
 			if keptReason == keepreasons.None {
 				// needs to be deleted
-				tableValues[0] = "✗"
+				tableValues[0] = "✗ NO"
 				tableColors[0] = tablewriter.Colors{tablewriter.Bold, tablewriter.FgRedColor}
 				deleteCount++
 				deleteTotalSizeBytes = deleteTotalSizeBytes + imageSizeBytes
 			} else {
-				tableValues[0] = "✔"
+				tableValues[0] = "✔ YES"
 				tableColors[0] = tablewriter.Colors{tablewriter.Bold, tablewriter.FgGreenColor}
 				keepCount++
 				keepTotalSizeBytes = keepTotalSizeBytes + imageSizeBytes
@@ -89,11 +89,19 @@ func ReportRepositoriesStatus(repos []imagefilters.ParsedRepo) {
 				log.Fatalf("Invalid uploaded timestamp %v", image.TimeUploadedMs)
 			}
 
-			tableValues[5] = time.Unix(uploadedMs/1000, 0).Format(time.RFC822)
-			if keptReason == keepreasons.Young {
+			tableValues[5] = "-"
+			if keptReason == keepreasons.UsedInCluster {
+				tableValues[5] = parsedImage.KeptData.Metadata
 				tableColors[5] = tablewriter.Colors{tablewriter.FgGreenColor}
 			} else {
 				tableColors[5] = tablewriter.Colors{}
+			}
+
+			tableValues[6] = time.Unix(uploadedMs/1000, 0).Format(time.RFC822)
+			if keptReason == keepreasons.Young {
+				tableColors[6] = tablewriter.Colors{tablewriter.FgGreenColor}
+			} else {
+				tableColors[6] = tablewriter.Colors{}
 			}
 
 			table.Rich(tableValues, tableColors)
@@ -112,8 +120,8 @@ func ReportRepositoriesStatus(repos []imagefilters.ParsedRepo) {
 			fmt.Sprintf(
 				"/ %v / %.3f%% of total images / %.3f%% of total size",
 				stringutil.HumanFriendlySize(deleteTotalSizeBytes),
-				float64(deleteCount)/float64(totalImages),
-				float64(deleteTotalSizeBytes)/float64(totalBytes),
+				float64(deleteCount)/float64(totalImages)*100,
+				float64(deleteTotalSizeBytes)/float64(totalBytes)*100,
 			),
 		),
 	)

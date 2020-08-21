@@ -33,7 +33,7 @@ func (gcrClient GCRClient) getRequestTo(urlSuffix string) []byte {
 
 	sleepOrExitOnError := func(err error) {
 		if triesCount > 3 {
-			log.Fatalf("HTTP request failed many times, fatal error %v\n", err.Error())
+			log.Fatalf("HTTP request failed many times, fatal error: %v\n", err.Error())
 		}
 
 		log.Infof("HTTP request failed with %v, retrying...\n", err.Error())
@@ -70,7 +70,7 @@ func (gcrClient GCRClient) deleteRequestTo(urlSuffix string, allowCompleteFailur
 
 	sleepOrExitOnError := func(err error) {
 		if triesCount > 3 && !allowCompleteFailure {
-			log.Fatalf("HTTP request failed many times, fatal error %v\n", err.Error())
+			log.Fatalf("HTTP request failed many times, fatal error: %v\n", err.Error())
 		}
 
 		log.Infof("HTTP request failed with %v, retrying...\n", err.Error())

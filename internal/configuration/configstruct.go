@@ -2,7 +2,9 @@ package configuration
 
 // KubernetesCluster encapsulates all the information needed per kubernetes cluster
 type KubernetesCluster struct {
-	Context string
+	Context       string
+	Namespace     string
+	RunningInside bool // RunningInside means that faulty-crane is running inside this cluster and thus the k8s client needs specific options to communicate with this cluster
 }
 
 // ContainerRegistry keeps the needed data for the container registry
