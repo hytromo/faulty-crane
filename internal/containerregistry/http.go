@@ -55,6 +55,10 @@ func (gcrClient GCRClient) getRequestTo(urlSuffix string) []byte {
 
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 
+		if resp.StatusCode < 200 || resp.StatusCode > 299 {
+			log.Fatalf("GET %v failed with %v", urlSuffix, string(bodyBytes))
+		}
+
 		if err != nil {
 			sleepOrExitOnError(err)
 			continue

@@ -114,7 +114,7 @@ func (k8s *K8s) getPods(waitGroup *sync.WaitGroup, podsChan chan<- podsContainer
 		pods, err := cluster.CoreV1.Pods(cluster.Namespace).List(metav1.ListOptions{})
 
 		if err != nil {
-			log.Fatal("Could not read pods: %v", err.Error())
+			log.Fatal("Could not read pods: ", err.Error())
 		}
 
 		podsChan <- podsContainer{
@@ -133,7 +133,7 @@ func (k8s *K8s) getDeployments(waitGroup *sync.WaitGroup, deploymentsChan chan<-
 		deployments, err := cluster.AppsV1.Deployments(cluster.Namespace).List(metav1.ListOptions{})
 
 		if err != nil {
-			log.Fatal("Could not read deployments: %v", err.Error())
+			log.Fatal("Could not read deployments: ", err.Error())
 		}
 
 		deploymentsChan <- deploymentsContainer{
@@ -152,7 +152,7 @@ func (k8s *K8s) getReplicaSets(waitGroup *sync.WaitGroup, replicaSetsChan chan<-
 		replicaSets, err := cluster.AppsV1.ReplicaSets(cluster.Namespace).List(metav1.ListOptions{})
 
 		if err != nil {
-			log.Fatal("Could not read replicaSets: %v", err.Error())
+			log.Fatal("Could not read replicaSets: ", err.Error())
 		}
 
 		replicaSetsChan <- replicaSetsContainer{
@@ -171,7 +171,7 @@ func (k8s *K8s) getStatefulSets(waitGroup *sync.WaitGroup, statefulSetsChan chan
 		statefulSets, err := cluster.AppsV1.StatefulSets(cluster.Namespace).List(metav1.ListOptions{})
 
 		if err != nil {
-			log.Fatal("Could not read statefulSets: %v", err.Error())
+			log.Fatal("Could not read statefulSets: ", err.Error())
 		}
 
 		statefulSetsChan <- statefulSetsContainer{
@@ -193,7 +193,7 @@ func (k8s K8s) GetUsedImages() map[string]*ClusterWithAPI {
 	replicaSetsChan := make(chan replicaSetsContainer, len(k8s.Clusters))
 	statefulSetsChan := make(chan statefulSetsContainer, len(k8s.Clusters))
 
-	log.Info("Reading kubernetes cluster(s)...")
+	log.Infof("Reading %v kubernetes cluster(s)...\n", len(k8s.Clusters))
 
 	waitGroup.Add(4)
 
