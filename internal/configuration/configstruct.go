@@ -57,8 +57,16 @@ type ConfigureSubcommandOptions struct {
 	Config string
 }
 
+// ShowSubcommandOptions defines the options of the show subcommand
+type ShowSubcommandOptions struct {
+	SubcommandEnabled bool
+	// Plan is the path to the plan file to show
+	Plan string
+}
+
 // AppOptions groups all the possible application options in a single struct
 type AppOptions struct {
 	Clean     CleanSubcommandOptions
 	Configure ConfigureSubcommandOptions
+	Show      ShowSubcommandOptions
 }

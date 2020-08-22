@@ -33,6 +33,7 @@ func getWrongOptionsError(subCommandsMap map[string]func()) (err error) {
 func Parse(args []string) (configuration.AppOptions, error) {
 	cleanSubCmd := "clean"
 	configureSubCmd := "configure"
+	showSubCmd := "show"
 
 	var appOptions configuration.AppOptions
 
@@ -107,6 +108,13 @@ func Parse(args []string) (configuration.AppOptions, error) {
 			configureCmd := flag.NewFlagSet(configureSubCmd, flag.ExitOnError)
 			configureCmd.StringVar(&appOptions.Configure.Config, "o", "faulty-crane.json", "the file to save the configuration to")
 			configureCmd.Parse(args[2:])
+		},
+		showSubCmd: func() {
+			appOptions.Show.SubcommandEnabled = true
+
+			showCmd := flag.NewFlagSet(showSubCmd, flag.ExitOnError)
+			showCmd.StringVar(&appOptions.Show.Plan, "plan", "", "the plan file to show")
+			showCmd.Parse(args[2:])
 		},
 	}
 
