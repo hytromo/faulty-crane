@@ -1,6 +1,7 @@
 package containerregistry
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -56,7 +57,8 @@ func (gcrClient GCRClient) getRequestTo(urlSuffix string) []byte {
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
-			log.Fatalf("GET %v failed with %v", urlSuffix, string(bodyBytes))
+			sleepOrExitOnError(errors.New(string(bodyBytes)))
+			continue
 		}
 
 		if err != nil {
@@ -85,23 +87,28 @@ func (gcrClient GCRClient) deleteRequestTo(urlSuffix string, allowCompleteFailur
 	}
 
 	for {
-		fmt.Println("Delete request step 1", triesCount)
+		if triesCount >= 4 && allowCompleteFailure {
+			return // request retried too many times but we don't care anymore
+		}
+
 		resp, err := gcrClient.client.Do(
 			gcrClient.newDeleteHTTPRequest(urlSuffix),
 		)
 
-		fmt.Println("Delete request step 2")
 		if err != nil {
 			sleepOrExitOnError(err)
 			continue
 		}
 
-		fmt.Println("Delete request step 3")
-		respBody, err := ioutil.ReadAll(resp.Body)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
 
-		fmt.Println("Delete request step 4", string(respBody))
 		if err != nil {
 			sleepOrExitOnError(err)
+			continue
+		}
+
+		if resp.StatusCode < 200 || resp.StatusCode > 299 {
+			sleepOrExitOnError(errors.New(string(bodyBytes)))
 			continue
 		}
 
