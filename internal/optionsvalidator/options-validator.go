@@ -10,11 +10,11 @@ import (
 func Validate(options configuration.AppOptions) error {
 	if options.Configure.SubcommandEnabled {
 		if options.Configure.Config == "" {
-			return errors.New("Please specify a configuration file to save your answers to")
+			return errors.New("please specify a configuration file to save your answers to")
 		}
 	} else if options.Clean.SubcommandEnabled {
 		if options.Clean.ContainerRegistry.Host == "" || options.Clean.ContainerRegistry.Access == "" {
-			return errors.New("Please specify a valid container registry")
+			return errors.New("please specify a valid container registry and access key")
 		}
 	}
 

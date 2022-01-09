@@ -118,7 +118,7 @@ func ReportRepositoriesStatus(repos []imagefilters.ParsedRepo) {
 		"image(s) will be deleted",
 		color.Red(
 			fmt.Sprintf(
-				"/ %v / %.3f%% of total images / %.3f%% of total size",
+				"/ %v / %.2f%% of total images / %.2f%% of total size",
 				stringutil.HumanFriendlySize(deleteTotalSizeBytes),
 				float64(deleteCount)/float64(totalImages)*100,
 				float64(deleteTotalSizeBytes)/float64(totalBytes)*100,

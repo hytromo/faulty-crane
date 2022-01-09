@@ -56,7 +56,7 @@ func WritePlan(parsedRepos []imagefilters.ParsedRepo, planPath string) {
 func ReadPlan(planPath string) []imagefilters.ParsedRepo {
 	planBytes, err := fileutil.ReadFile(planPath, true)
 	if err != nil {
-		log.Fatal("Could not read plan file %v: %v\n", planPath, err.Error())
+		log.Fatalf("Could not read plan file '%v': %v\n", planPath, err.Error())
 	}
 
 	parsedRepos := []imagefilters.ParsedRepo{}

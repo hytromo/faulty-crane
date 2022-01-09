@@ -1,20 +1,28 @@
 package k8s
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"sync"
 
 	"github.com/hytromo/faulty-crane/internal/configuration"
 	log "github.com/sirupsen/logrus"
-	apiAppsV1 "k8s.io/api/apps/v1"
-	apiCoreV1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/client-go/kubernetes"
-	appsV1 "k8s.io/client-go/kubernetes/typed/apps/v1"
 	coreV1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	appsV1 "k8s.io/client-go/kubernetes/typed/apps/v1"
+
+	// apiAppsV1 "k8s.io/client-go/listers/apps/v1"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
+
+	apiAppsV1 "k8s.io/api/apps/v1"
+	apiCoreV1 "k8s.io/api/core/v1"
+	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // ClusterWithAPI is a struct that contains information about the cluster as well as api clients
@@ -75,7 +83,7 @@ func NewK8s(clusters []configuration.KubernetesCluster) K8s {
 			internalConfig, err := clientcmd.BuildConfigFromFlags("", "")
 
 			if err != nil {
-				log.Fatal("Could not parse kubeconfig: %v", err.Error())
+				log.Fatalf("Could not parse kubeconfig: %v", err.Error())
 			}
 
 			config = internalConfig
@@ -84,7 +92,7 @@ func NewK8s(clusters []configuration.KubernetesCluster) K8s {
 			externalConfig, err := buildConfigFromFlags(cluster.Context, kubeconfig)
 
 			if err != nil {
-				log.Fatal("Could not parse kubeconfig: %v", err.Error())
+				log.Fatalf("Could not parse kubeconfig: %v", err.Error())
 			}
 
 			config = externalConfig
@@ -93,7 +101,7 @@ func NewK8s(clusters []configuration.KubernetesCluster) K8s {
 		clientset, err := kubernetes.NewForConfig(config)
 
 		if err != nil {
-			log.Fatal("Cannot initialize kubernetes client with this config: %v", err.Error())
+			log.Fatalf("Cannot initialize kubernetes client with this config: %v", err.Error())
 		}
 
 		clustersWithAPI[clusterIndex] = ClusterWithAPI{
@@ -111,7 +119,7 @@ func (k8s *K8s) getPods(waitGroup *sync.WaitGroup, podsChan chan<- podsContainer
 	defer waitGroup.Done()
 
 	for index, cluster := range k8s.Clusters {
-		pods, err := cluster.CoreV1.Pods(cluster.Namespace).List(metav1.ListOptions{})
+		pods, err := cluster.CoreV1.Pods(cluster.Namespace).List(context.TODO(), metav1.ListOptions{})
 
 		if err != nil {
 			log.Fatal("Could not read pods: ", err.Error())
@@ -130,7 +138,7 @@ func (k8s *K8s) getDeployments(waitGroup *sync.WaitGroup, deploymentsChan chan<-
 	defer waitGroup.Done()
 
 	for index, cluster := range k8s.Clusters {
-		deployments, err := cluster.AppsV1.Deployments(cluster.Namespace).List(metav1.ListOptions{})
+		deployments, err := cluster.AppsV1.Deployments(cluster.Namespace).List(context.TODO(), metav1.ListOptions{})
 
 		if err != nil {
 			log.Fatal("Could not read deployments: ", err.Error())
@@ -149,7 +157,7 @@ func (k8s *K8s) getReplicaSets(waitGroup *sync.WaitGroup, replicaSetsChan chan<-
 	defer waitGroup.Done()
 
 	for index, cluster := range k8s.Clusters {
-		replicaSets, err := cluster.AppsV1.ReplicaSets(cluster.Namespace).List(metav1.ListOptions{})
+		replicaSets, err := cluster.AppsV1.ReplicaSets(cluster.Namespace).List(context.TODO(), metav1.ListOptions{})
 
 		if err != nil {
 			log.Fatal("Could not read replicaSets: ", err.Error())
@@ -168,7 +176,7 @@ func (k8s *K8s) getStatefulSets(waitGroup *sync.WaitGroup, statefulSetsChan chan
 	defer waitGroup.Done()
 
 	for index, cluster := range k8s.Clusters {
-		statefulSets, err := cluster.AppsV1.StatefulSets(cluster.Namespace).List(metav1.ListOptions{})
+		statefulSets, err := cluster.AppsV1.StatefulSets(cluster.Namespace).List(context.TODO(), metav1.ListOptions{})
 
 		if err != nil {
 			log.Fatal("Could not read statefulSets: ", err.Error())
