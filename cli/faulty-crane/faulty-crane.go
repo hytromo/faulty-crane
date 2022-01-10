@@ -31,7 +31,7 @@ func main() {
 		{
 			options := appOptions.Clean
 
-			parsedRepos := []imagefilters.ParsedRepo{}
+			var parsedRepos []imagefilters.ParsedRepo
 
 			// parsed repos are read from a plan file only if it is specified during a normal clean run
 			if !options.DryRun && options.Plan != "" {
@@ -49,7 +49,7 @@ func main() {
 			}
 
 			if options.DryRun {
-				reporter.ReportRepositoriesStatus(parsedRepos)
+				reporter.ReportRepositoriesStatus(parsedRepos, appOptions.Clean.AnalyticalPlan)
 
 				if options.Plan != "" {
 					configurationhelper.WritePlan(parsedRepos, options.Plan)
@@ -92,7 +92,7 @@ func main() {
 	case appOptions.Show.SubcommandEnabled:
 		{
 			parsedRepos := configurationhelper.ReadPlan(appOptions.Show.Plan)
-			reporter.ReportRepositoriesStatus(parsedRepos)
+			reporter.ReportRepositoriesStatus(parsedRepos, appOptions.Show.AnalyticalPlan)
 		}
 	}
 }

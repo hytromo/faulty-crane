@@ -88,6 +88,7 @@ func Parse(args []string) (configuration.AppOptions, error) {
 			cleanCmd := flag.NewFlagSet(cleanSubCmd, flag.ExitOnError)
 
 			cleanCmd.BoolVar(&appOptions.Clean.DryRun, "dry-run", LookupEnvOrBool(ENV_PREFIX+"DRY_RUN", false), "just output what is expected to be deleted without actually deleting anything")
+			cleanCmd.BoolVar(&appOptions.Clean.AnalyticalPlan, "analytical-plan", LookupEnvOrBool(ENV_PREFIX+"ANALYTICAL_PLAN", false), "print the whole plan, not an aggregation")
 
 			cleanCmd.StringVar(&appOptions.Clean.Plan, "plan", LookupEnvOrString(ENV_PREFIX+"PLAN", ""), "a plan file: use with -dry-run to create a new plan file containing the images marked for deletion; use without -dry-run to read from a plan file which images to delete (if a plan file is specified all the other filters are skipped/ignored)")
 
@@ -96,7 +97,7 @@ func Parse(args []string) (configuration.AppOptions, error) {
 			cleanCmd.StringVar(&appOptions.Clean.ContainerRegistry.Host, "registry", LookupEnvOrString(ENV_PREFIX+"CONTAINER_REGISTRY_HOST", ""), "the registry to clean, e.g. eu.gcr.io")
 			cleanCmd.StringVar(&appOptions.Clean.ContainerRegistry.Access, "key", LookupEnvOrString(ENV_PREFIX+"CONTAINER_REGISTRY_ACCESS", ""), "the path to the registry access key file, e.g. a file containing the output of 'gcloud auth print-access-token'")
 
-			cleanCmd.StringVar(&appOptions.Clean.Keep.YoungerThan, "younger-than", LookupEnvOrString(ENV_PREFIX+"KEEP_YOUNGER_THAN", ""), "images younger than this value will be kept; provide a duration value, e.g. '10d', '1w3d' or '1d3h'")
+			cleanCmd.StringVar(&appOptions.Clean.Keep.YoungerThan, "keep-younger-than", LookupEnvOrString(ENV_PREFIX+"KEEP_YOUNGER_THAN", ""), "images younger than this value will be kept; provide a duration value, e.g. '10d', '1w3d' or '1d3h'")
 
 			k8sClustersStr := cleanCmd.String("keep-used-in-k8s", LookupEnvOrString(ENV_PREFIX+"KEEP_USED_IN_K8S", ""), "comma-separated list of k8s contexts; any image that is used by these clusters won't be deleted")
 
@@ -104,7 +105,7 @@ func Parse(args []string) (configuration.AppOptions, error) {
 
 			imageDigests := cleanCmd.String("keep-image-digests", LookupEnvOrString(ENV_PREFIX+"KEEP_IMAGE_DIGESTS", ""), "comma-separated list of digests; images with these digests will be kept")
 
-			imageIDs := cleanCmd.String("keep-image-ids", LookupEnvOrString(ENV_PREFIX+"KEEP_IMAGE_IDS", ""), "comma-separated list of IDs; images with these IDs will be kept")
+			imageIDs := cleanCmd.String("keep-image-repos", LookupEnvOrString(ENV_PREFIX+"KEEP_IMAGE_REPOS", ""), "comma-separated list of repos; images with in these repos will be kept")
 
 			safeParseArguments(cleanCmd, args)
 
@@ -158,6 +159,8 @@ func Parse(args []string) (configuration.AppOptions, error) {
 
 			showCmd := flag.NewFlagSet(showSubCmd, flag.ExitOnError)
 			showCmd.StringVar(&appOptions.Show.Plan, "plan", LookupEnvOrString(ENV_PREFIX+"PLAN", "plan.out"), "the plan file to show")
+			showCmd.BoolVar(&appOptions.Show.AnalyticalPlan, "analytical-plan", LookupEnvOrBool(ENV_PREFIX+"ANALYTICAL_PLAN", false), "print the whole plan, not an aggregation")
+			// TODO: parallelize image deletion with prorgessbar etc
 			safeParseArguments(showCmd, args)
 		},
 	}
