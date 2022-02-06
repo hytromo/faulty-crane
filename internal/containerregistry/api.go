@@ -104,10 +104,11 @@ func (gcrClient GCRClient) listTags(repositoryLink string) Repository {
 
 func (gcrClient GCRClient) DeleteImage(imageRepo string, image ContainerImage) {
 	// all the tags of the image need to be deleted first
+	log.Infof("Here the image repo is %v", imageRepo)
 	for _, tag := range image.Tag {
 		gcrClient.deleteRequestTo("/"+imageRepo+"/manifests/"+tag, true)
 	}
 
 	// after all the image tags have been deleted, we can delete the image itself
-	gcrClient.deleteRequestTo("/"+imageRepo+"/manifests/"+image.Digest, false)
+	gcrClient.deleteRequestTo("/"+imageRepo+"/manifests/"+image.Digest, true)
 }

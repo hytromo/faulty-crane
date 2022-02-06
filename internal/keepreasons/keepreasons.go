@@ -4,8 +4,10 @@ package keepreasons
 type KeptReason int
 
 const (
+	// None kept reason means that the image does not have a reason to be kept and thus it WILL be deleted, it is important that this has value 0, as non-parsed images have automatically kept reason 0
+	None KeptReason = iota
 	// Young kept reason means that the image was uploaded recently and thus is not filtered
-	Young KeptReason = iota
+	Young
 	// UsedInCluster kept reason means that the image is being used in a k8s cluster and thus will not be deleted
 	UsedInCluster
 	// WhitelistedTag kept reason means that the image has a tag which is whitelisted and thus will not be deleted
@@ -14,8 +16,6 @@ const (
 	WhitelistedDigest
 	// WhitelistedRepository kept reason means that the image has a repository which is whitelisted and thus will not be deleted
 	WhitelistedRepository
-	// None kept reason means that the image does not have a reason to be kept and thus it WILL be deleted
-	None
 )
 
 // KeptData contains all the data needed to figure out why an image was kept from being deleted

@@ -1,8 +1,11 @@
 package imagefilters
 
-import "github.com/hytromo/faulty-crane/internal/keepreasons"
+import (
+	"github.com/hytromo/faulty-crane/internal/containerregistry"
+	"github.com/hytromo/faulty-crane/internal/keepreasons"
+)
 
-func repoFilter(repos []ParsedRepo, reposToKeep []string) {
+func repoFilter(repos []containerregistry.Repository, reposToKeep []string) {
 	if len(reposToKeep) == 0 {
 		return
 	}
@@ -14,7 +17,7 @@ func repoFilter(repos []ParsedRepo, reposToKeep []string) {
 	}
 
 	for repoIndex := range repos {
-		if _, exists := reposToKeepMap[repos[repoIndex].Repo.Link]; exists {
+		if _, exists := reposToKeepMap[repos[repoIndex].Link]; exists {
 			for imageIndex := range repos[repoIndex].Images {
 				parsedImage := repos[repoIndex].Images[imageIndex]
 				if parsedImage.KeptData.Reason != keepreasons.None {

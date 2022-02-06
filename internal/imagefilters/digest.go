@@ -1,8 +1,11 @@
 package imagefilters
 
-import "github.com/hytromo/faulty-crane/internal/keepreasons"
+import (
+	"github.com/hytromo/faulty-crane/internal/containerregistry"
+	"github.com/hytromo/faulty-crane/internal/keepreasons"
+)
 
-func digestFilter(repos []ParsedRepo, digestsToKeep []string) {
+func digestFilter(repos []containerregistry.Repository, digestsToKeep []string) {
 	if len(digestsToKeep) == 0 {
 		return
 	}
@@ -21,7 +24,7 @@ func digestFilter(repos []ParsedRepo, digestsToKeep []string) {
 				continue
 			}
 
-			_, exists := digestsToKeepMap[parsedImage.Image.Digest]
+			_, exists := digestsToKeepMap[parsedImage.Digest]
 			if exists {
 				repos[repoIndex].Images[imageIndex].KeptData.Reason = keepreasons.WhitelistedDigest
 				break

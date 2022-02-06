@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -31,7 +30,7 @@ func main() {
 		{
 			options := appOptions.Clean
 
-			var parsedRepos []imagefilters.ParsedRepo
+			var parsedRepos []containerregistry.Repository
 
 			// parsed repos are read from a plan file only if it is specified during a normal clean run
 			if !options.DryRun && options.Plan != "" {
@@ -53,32 +52,35 @@ func main() {
 
 				if options.Plan != "" {
 					configurationhelper.WritePlan(parsedRepos, options.Plan)
+
+					// if the user used a config to produce the dry run, they can use the same config to execute the plan, so here we prepare fully the command for them
+					configStrInfo := ""
+					if options.Config != "" {
+						configStrInfo = fmt.Sprintf(" -config %v", options.Config)
+
+					}
 					log.Infof(
-						"Plan saved to %v, run '%v clean -plan %v -config ...' to delete exactly the images that have been marked for deletion above",
-						options.Plan, filepath.Base(os.Args[0]), options.Plan,
+						"Plan saved to %v, run '%v clean -plan %v%v' to delete exactly the images that have been marked for deletion above",
+						options.Plan, filepath.Base(os.Args[0]), options.Plan, configStrInfo,
 					)
 				}
 			} else {
-				// TODO: really clean the parsed repos
 				gcrClient := containerregistry.MakeGCRClient(containerregistry.GCRClient{
 					Host:      options.ContainerRegistry.Host,
 					AccessKey: options.ContainerRegistry.Access,
 				})
+				atLeastOne := false
 				for _, repo := range parsedRepos {
 					for _, image := range repo.Images {
 						if image.KeptData.Reason == keepreasons.None {
-							log.Infof("Need to delete %v with tags %v and digest %v", image.Image.Repo, image.Image.Tag, image.Image.Digest)
-							b, err := json.MarshalIndent(image, "", "  ")
-							if err != nil {
-								fmt.Println(err)
-							}
-							fmt.Print(string(b))
+							atLeastOne = true
+							log.Infof("Outside image repo is", image.Repo)
 							gcrClient.DeleteImage(
-								strings.Replace(image.Image.Repo, "eu.gcr.io/", "", 1), image.Image)
+								strings.Replace(image.Repo, "eu.gcr.io/", "", 1), image)
 							break
 						}
 					}
-					if true {
+					if atLeastOne {
 						break
 					}
 				}

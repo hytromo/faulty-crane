@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/cheggaaa/pb/v3"
+	"github.com/hytromo/faulty-crane/internal/keepreasons"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,7 +32,8 @@ type ContainerImage struct {
 	TimeCreatedMs  string
 	TimeUploadedMs string
 	Digest         string
-	Repo           string // Repo is the name of the image's repository without the tag in the form e.g. eu.gcr.io/faulty-crane-project/faulty-crane-test
+	Repo           string               // Repo is the name of the image's repository without the tag in the form e.g. eu.gcr.io/faulty-crane-project/faulty-crane-test
+	KeptData       keepreasons.KeptData `json:",omitempty"`
 }
 
 // MakeGCRClient builds a new GCRClient instance, adding the missing default values e.g. http client

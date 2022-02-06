@@ -2,11 +2,12 @@ package imagefilters
 
 import (
 	"github.com/hytromo/faulty-crane/internal/configuration"
+	"github.com/hytromo/faulty-crane/internal/containerregistry"
 	"github.com/hytromo/faulty-crane/internal/k8s"
 	"github.com/hytromo/faulty-crane/internal/keepreasons"
 )
 
-func k8sFilter(repos []ParsedRepo, clusters []configuration.KubernetesCluster) {
+func k8sFilter(repos []containerregistry.Repository, clusters []configuration.KubernetesCluster) {
 	if len(clusters) == 0 {
 		return
 	}
@@ -23,8 +24,8 @@ func k8sFilter(repos []ParsedRepo, clusters []configuration.KubernetesCluster) {
 				continue
 			}
 
-			for _, tag := range parsedImage.Image.Tag {
-				fullNameWithTag := parsedImage.Image.Repo + ":" + tag
+			for _, tag := range parsedImage.Tag {
+				fullNameWithTag := parsedImage.Repo + ":" + tag
 				cluster, exists := usedImages[fullNameWithTag]
 
 				if exists {
@@ -35,7 +36,7 @@ func k8sFilter(repos []ParsedRepo, clusters []configuration.KubernetesCluster) {
 				}
 			}
 
-			fullNameWithDigest := parsedImage.Image.Repo + "@" + parsedImage.Image.Digest
+			fullNameWithDigest := parsedImage.Repo + "@" + parsedImage.Digest
 			cluster, exists := usedImages[fullNameWithDigest]
 
 			if exists {

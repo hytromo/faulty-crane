@@ -6,7 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/hytromo/faulty-crane/internal/configuration"
-	"github.com/hytromo/faulty-crane/internal/imagefilters"
+	"github.com/hytromo/faulty-crane/internal/containerregistry"
 	"github.com/hytromo/faulty-crane/internal/utils/fileutil"
 )
 
@@ -48,18 +48,18 @@ func CreateNew(params configuration.ConfigureSubcommandOptions) {
 }
 
 // WritePlan writes the parsed repos in a plan file; the plan file can then be used to remove specific images
-func WritePlan(parsedRepos []imagefilters.ParsedRepo, planPath string) {
+func WritePlan(parsedRepos []containerregistry.Repository, planPath string) {
 	fileutil.SaveJSON(planPath, parsedRepos, true)
 }
 
 // ReadPlan reads a plan file and returns the parsed repositories
-func ReadPlan(planPath string) []imagefilters.ParsedRepo {
+func ReadPlan(planPath string) []containerregistry.Repository {
 	planBytes, err := fileutil.ReadFile(planPath, true)
 	if err != nil {
 		log.Fatalf("Could not read plan file '%v': %v\n", planPath, err.Error())
 	}
 
-	parsedRepos := []imagefilters.ParsedRepo{}
+	parsedRepos := []containerregistry.Repository{}
 
 	err = json.Unmarshal([]byte(planBytes), &parsedRepos)
 

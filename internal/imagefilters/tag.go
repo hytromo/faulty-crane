@@ -1,8 +1,11 @@
 package imagefilters
 
-import "github.com/hytromo/faulty-crane/internal/keepreasons"
+import (
+	"github.com/hytromo/faulty-crane/internal/containerregistry"
+	"github.com/hytromo/faulty-crane/internal/keepreasons"
+)
 
-func tagFilter(repos []ParsedRepo, tagsToKeep []string) {
+func tagFilter(repos []containerregistry.Repository, tagsToKeep []string) {
 	if len(tagsToKeep) == 0 {
 		return
 	}
@@ -22,8 +25,7 @@ func tagFilter(repos []ParsedRepo, tagsToKeep []string) {
 				continue
 			}
 
-			image := parsedImage.Image
-			for _, tag := range image.Tag {
+			for _, tag := range parsedImage.Tag {
 				_, exists := tagsToKeepMap[tag]
 				if exists {
 					repos[repoIndex].Images[imageIndex].KeptData.Reason = keepreasons.WhitelistedTag

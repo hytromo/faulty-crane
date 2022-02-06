@@ -10,7 +10,7 @@ import (
 	"time"
 
 	timeago "github.com/caarlos0/timea.go"
-	"github.com/hytromo/faulty-crane/internal/imagefilters"
+	"github.com/hytromo/faulty-crane/internal/containerregistry"
 	"github.com/hytromo/faulty-crane/internal/keepreasons"
 	"github.com/hytromo/faulty-crane/internal/utils/stringutil"
 	color "github.com/logrusorgru/aurora"
@@ -18,9 +18,9 @@ import (
 )
 
 // ReportRepositoriesStatus prints out in a nice way the status of the repositories, e.g. what needs to be deleted and for what reason
-func ReportRepositoriesStatus(repos []imagefilters.ParsedRepo, showAnalyticalPlan bool) {
+func ReportRepositoriesStatus(repos []containerregistry.Repository, showAnalyticalPlan bool) {
 	sort.SliceStable(repos, func(i int, j int) bool {
-		return repos[i].Repo.Link < repos[j].Repo.Link
+		return repos[i].Link < repos[j].Link
 	})
 
 	table := tablewriter.NewWriter(os.Stdout)
@@ -36,7 +36,7 @@ func ReportRepositoriesStatus(repos []imagefilters.ParsedRepo, showAnalyticalPla
 		table.SetHeader(headers)
 		for _, parsedRepo := range repos {
 			for _, parsedImage := range parsedRepo.Images {
-				image := parsedImage.Image
+				image := parsedImage
 				keptReason := parsedImage.KeptData.Reason
 
 				tableValues := make([]string, headersCount)
@@ -60,7 +60,7 @@ func ReportRepositoriesStatus(repos []imagefilters.ParsedRepo, showAnalyticalPla
 					keepTotalSizeBytes = keepTotalSizeBytes + imageSizeBytes
 				}
 
-				tableValues[1] = stringutil.KeepAtMost(parsedRepo.Repo.Link, 80)
+				tableValues[1] = stringutil.KeepAtMost(parsedRepo.Link, 80)
 				if keptReason == keepreasons.WhitelistedRepository {
 					tableColors[1] = tablewriter.Colors{tablewriter.FgGreenColor}
 				} else {
@@ -117,15 +117,15 @@ func ReportRepositoriesStatus(repos []imagefilters.ParsedRepo, showAnalyticalPla
 			tableValues := make([]string, headersCount)
 			tableColors := make([]tablewriter.Colors, headersCount)
 
-			tableValues[0] = parsedRepo.Repo.Link
-			totalImagesCountInRepo := len(parsedRepo.Repo.Images)
+			tableValues[0] = parsedRepo.Link
+			totalImagesCountInRepo := len(parsedRepo.Images)
 			deletedImagesCountInRepo := 0
 			var deleteTotalSizeInRepoBytes int64 = 0
 			var keepTotalSizeBytesInRepo int64 = 0
 			var latestUploadedTimeStampToBeDeleted int64 = 0
 
 			for _, parsedImage := range parsedRepo.Images {
-				image := parsedImage.Image
+				image := parsedImage
 				keptReason := parsedImage.KeptData.Reason
 
 				imageSizeBytes, err := strconv.ParseInt(image.ImageSizeBytes, 10, 64)

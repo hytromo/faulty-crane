@@ -88,7 +88,7 @@ func Parse(args []string) (configuration.AppOptions, error) {
 			cleanCmd := flag.NewFlagSet(cleanSubCmd, flag.ExitOnError)
 
 			cleanCmd.BoolVar(&appOptions.Clean.DryRun, "dry-run", LookupEnvOrBool(ENV_PREFIX+"DRY_RUN", false), "just output what is expected to be deleted without actually deleting anything")
-			cleanCmd.BoolVar(&appOptions.Clean.AnalyticalPlan, "analytical-plan", LookupEnvOrBool(ENV_PREFIX+"ANALYTICAL_PLAN", false), "print the whole plan, not an aggregation")
+			cleanCmd.BoolVar(&appOptions.Clean.AnalyticalPlan, "analytically", LookupEnvOrBool(ENV_PREFIX+"ANALYTICALLY", false), "print the whole plan, not an aggregation")
 
 			cleanCmd.StringVar(&appOptions.Clean.Plan, "plan", LookupEnvOrString(ENV_PREFIX+"PLAN", ""), "a plan file: use with -dry-run to create a new plan file containing the images marked for deletion; use without -dry-run to read from a plan file which images to delete (if a plan file is specified all the other filters are skipped/ignored)")
 
@@ -159,7 +159,7 @@ func Parse(args []string) (configuration.AppOptions, error) {
 
 			showCmd := flag.NewFlagSet(showSubCmd, flag.ExitOnError)
 			showCmd.StringVar(&appOptions.Show.Plan, "plan", LookupEnvOrString(ENV_PREFIX+"PLAN", "plan.out"), "the plan file to show")
-			showCmd.BoolVar(&appOptions.Show.AnalyticalPlan, "analytical-plan", LookupEnvOrBool(ENV_PREFIX+"ANALYTICAL_PLAN", false), "print the whole plan, not an aggregation")
+			showCmd.BoolVar(&appOptions.Show.AnalyticalPlan, "analytically", LookupEnvOrBool(ENV_PREFIX+"ANALYTICALLY", false), "print the whole plan, not an aggregation")
 			// TODO: parallelize image deletion with prorgessbar etc
 			safeParseArguments(showCmd, args)
 		},

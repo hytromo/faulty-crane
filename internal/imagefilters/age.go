@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hytromo/faulty-crane/internal/containerregistry"
 	"github.com/hytromo/faulty-crane/internal/keepreasons"
 	log "github.com/sirupsen/logrus"
 	"maze.io/x/duration"
@@ -23,7 +24,7 @@ func getStringDurationInMs(stringDuration string) int64 {
 	return int64(parsedDuration.Seconds() * 1000)
 }
 
-func ageFilter(repos []ParsedRepo, keepYoungerThan string) {
+func ageFilter(repos []containerregistry.Repository, keepYoungerThan string) {
 	if keepYoungerThan == "" {
 		return
 	}
@@ -40,12 +41,11 @@ func ageFilter(repos []ParsedRepo, keepYoungerThan string) {
 				continue
 			}
 
-			image := parsedImage.Image
-
-			uploadedMs, err := strconv.ParseInt(image.TimeUploadedMs, 10, 64)
+			uploadedMs, err := strconv.ParseInt(parsedImage.TimeUploadedMs, 10, 64)
 
 			if err != nil {
-				log.Fatalf("Image %v contains invalid time uploaded field: %v", image.Digest, image.TimeUploadedMs)
+				log.Errorf("Image %v contains invalid time uploaded field: %v", parsedImage.Digest, parsedImage.TimeUploadedMs)
+				continue
 			}
 
 			ageMs := nowMs - uploadedMs
