@@ -13,3 +13,5 @@ export FAULTY_CRANE_CONTAINER_REGISTRY_ACCESS=$(gcloud auth print-access-token)
 faulty-crane clean -dry-run -config config.json -plan plan.out
 faulty-crane clean -plan plan.out -config config.json
 ```
+
+![Usage](final.gif)

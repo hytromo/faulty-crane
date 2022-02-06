@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -12,7 +11,6 @@ import (
 	"github.com/hytromo/faulty-crane/internal/configurationhelper"
 	"github.com/hytromo/faulty-crane/internal/containerregistry"
 	"github.com/hytromo/faulty-crane/internal/imagefilters"
-	"github.com/hytromo/faulty-crane/internal/keepreasons"
 	"github.com/hytromo/faulty-crane/internal/reporter"
 	color "github.com/logrusorgru/aurora"
 )
@@ -65,25 +63,10 @@ func main() {
 					)
 				}
 			} else {
-				gcrClient := containerregistry.MakeGCRClient(containerregistry.GCRClient{
+				containerregistry.MakeGCRClient(containerregistry.GCRClient{
 					Host:      options.ContainerRegistry.Host,
 					AccessKey: options.ContainerRegistry.Access,
-				})
-				atLeastOne := false
-				for _, repo := range parsedRepos {
-					for _, image := range repo.Images {
-						if image.KeptData.Reason == keepreasons.None {
-							atLeastOne = true
-							log.Infof("Outside image repo is", image.Repo)
-							gcrClient.DeleteImage(
-								strings.Replace(image.Repo, "eu.gcr.io/", "", 1), image)
-							break
-						}
-					}
-					if atLeastOne {
-						break
-					}
-				}
+				}).DeleteImagesWithNoKeepReason(parsedRepos)
 			}
 		}
 	case appOptions.Configure.SubcommandEnabled:
