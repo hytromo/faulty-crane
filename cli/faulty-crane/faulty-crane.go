@@ -63,10 +63,16 @@ func main() {
 					)
 				}
 			} else {
-				containerregistry.MakeGCRClient(containerregistry.GCRClient{
+				results := containerregistry.MakeGCRClient(containerregistry.GCRClient{
 					Host:      options.ContainerRegistry.Host,
 					AccessKey: options.ContainerRegistry.Access,
 				}).DeleteImagesWithNoKeepReason(parsedRepos)
+
+				if results.ShouldDeleteCount > 0 {
+					log.Infof("Deleted %.2f%% (%v/%v) of the images", float64(results.ManagedToDeleteCount)/float64(results.ShouldDeleteCount)*100, results.ManagedToDeleteCount, results.ShouldDeleteCount)
+				} else {
+					log.Info("Nothing to do")
+				}
 			}
 		}
 	case appOptions.Configure.SubcommandEnabled:

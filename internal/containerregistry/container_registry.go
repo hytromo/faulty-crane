@@ -48,31 +48,103 @@ func MakeGCRClient(client GCRClient) GCRClient {
 	return gcrClient
 }
 
+func (gcrClient GCRClient) deleteImageFromChan(repoLink string, imagesToDeleteChan chan ContainerImage, imagesDeletedChan chan bool) {
+	for image := range imagesToDeleteChan {
+		imagesDeletedChan <- gcrClient.DeleteImage(repoLink, image, false)
+	}
+}
+
+func (gcrClient GCRClient) deleteRepoImages(repo Repository, pb *pb.ProgressBar) RepoDeletionResult {
+	result := RepoDeletionResult{
+		ShouldDeleteCount:    0,
+		ManagedToDeleteCount: 0,
+	}
+
+	result.ShouldDeleteCount = getNeedingDeletionInRepoCount(repo)
+	deletingImagesWorkersNum := int(math.Min(8, float64(result.ShouldDeleteCount)))
+
+	imagesToDeleteChan := make(chan ContainerImage, result.ShouldDeleteCount) // jobs
+	imagesDeletedChan := make(chan bool, result.ShouldDeleteCount)            // results
+
+	for i := 1; i <= deletingImagesWorkersNum; i++ {
+		go gcrClient.deleteImageFromChan(repo.Link, imagesToDeleteChan, imagesDeletedChan)
+	}
+
+	for _, image := range repo.Images {
+		if image.KeptData.Reason == keepreasons.None {
+			// feed the jobs to the workers
+			imagesToDeleteChan <- image
+		}
+	}
+
+	// while the jobs are being done by the workers, we are counting them
+	for _, image := range repo.Images {
+		if image.KeptData.Reason == keepreasons.None {
+			managedToDeleteImage := <-imagesDeletedChan
+
+			pb.Increment()
+
+			if managedToDeleteImage {
+				result.ManagedToDeleteCount++
+			}
+		}
+	}
+
+	return result
+}
+
 func (gcrClient GCRClient) fetchRepoImagesWorker(repositoryLinks <-chan string, parsedRepos chan<- Repository) {
 	for repo := range repositoryLinks {
 		parsedRepos <- gcrClient.listTags(repo)
 	}
 }
 
-func (gcrClient GCRClient) deleteRepoImagesWorker(repos <-chan Repository, deletionResults chan<- RepoDeletionResult) {
+func (gcrClient GCRClient) deleteRepoImagesWorker(repos <-chan Repository, deletionResults chan<- RepoDeletionResult, pb *pb.ProgressBar) {
 	for repo := range repos {
-		deletionResults <- gcrClient.deleteRepoImages(repo) // TODO: this function will spawn more goroutines for parallel image deletion
-		// TODO: pass `bar` as well and increment here
-		// TODO: initialize `bar` with the total amount of images that are to be deleted
+		deletionResults <- gcrClient.deleteRepoImages(repo, pb)
 	}
 }
 
-func (gcrClient GCRClient) DeleteImagesWithNoKeepReason(repos []Repository) []RepoDeletionResult {
+func getNeedingDeletionInRepoCount(repo Repository) int {
+	repoImagesToDelete := 0
+	for _, image := range repo.Images {
+		if image.KeptData.Reason == keepreasons.None {
+			repoImagesToDelete++
+		}
+	}
+	return repoImagesToDelete
+}
+
+func (gcrClient GCRClient) DeleteImagesWithNoKeepReason(repos []Repository) RepoDeletionResult {
+	allResults := RepoDeletionResult{
+		ShouldDeleteCount:    0,
+		ManagedToDeleteCount: 0,
+	}
+
 	reposCount := len(repos)
 
 	// spawn max 40 goroutines, if repos are less than 40, try to list them all concurrently
-	reposParsingWorkersNum := int(math.Min(10, float64(reposCount)))
+	reposDeletingWorkersNum := int(math.Min(8, float64(reposCount)))
 
 	repositoryLinksChan := make(chan Repository, reposCount)         // jobs
 	deletionResultsChan := make(chan RepoDeletionResult, reposCount) // results
 
-	for i := 1; i <= reposParsingWorkersNum; i++ {
-		go gcrClient.deleteRepoImagesWorker(repositoryLinksChan, deletionResultsChan)
+	totalImagesToDelete := 0
+
+	for _, repo := range repos {
+		totalImagesToDelete += getNeedingDeletionInRepoCount(repo)
+	}
+
+	if totalImagesToDelete == 0 {
+		return allResults
+	}
+
+	log.Info("Deleting the images of ", reposCount, " repo(s), using ", reposDeletingWorkersNum, " routine(s)")
+
+	bar := pb.Full.Start(totalImagesToDelete)
+
+	for i := 1; i <= reposDeletingWorkersNum; i++ {
+		go gcrClient.deleteRepoImagesWorker(repositoryLinksChan, deletionResultsChan, bar)
 	}
 
 	for _, repo := range repos {
@@ -80,27 +152,11 @@ func (gcrClient GCRClient) DeleteImagesWithNoKeepReason(repos []Repository) []Re
 		repositoryLinksChan <- repo
 	}
 
-	atLeastOne := false
-	for _, repo := range repos {
-		for _, image := range repo.Images {
-			if image.KeptData.Reason == keepreasons.None {
-				atLeastOne = true
-				gcrClient.DeleteImage(repo.Link, image)
-				break
-			}
-		}
-		if atLeastOne {
-			break
-		}
-	}
-
-	bar := pb.Full.Start(reposCount)
-
 	// while the jobs are being done by the workers, we are merging all the results into one
-	allResults := []RepoDeletionResult{}
 	for range repos {
-		allResults = append(allResults, <-deletionResultsChan)
-		bar.Increment()
+		thisResult := <-deletionResultsChan
+		allResults.ShouldDeleteCount += thisResult.ShouldDeleteCount
+		allResults.ManagedToDeleteCount += thisResult.ManagedToDeleteCount
 	}
 
 	bar.Finish()

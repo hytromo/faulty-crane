@@ -2,7 +2,6 @@ package containerregistry
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -16,7 +15,6 @@ func (gcrClient GCRClient) getBaseURL() string {
 }
 
 func (gcrClient GCRClient) newDeleteHTTPRequest(urlSuffix string) *http.Request {
-	fmt.Println("Full URL is", gcrClient.getBaseURL()+urlSuffix)
 	req, _ := http.NewRequest("DELETE", gcrClient.getBaseURL()+urlSuffix, nil)
 	req.SetBasicAuth("_token", gcrClient.AccessKey)
 	return req
@@ -71,7 +69,7 @@ func (gcrClient GCRClient) getRequestTo(urlSuffix string) []byte {
 }
 
 // deleteRequestTo does a DELETE request to the container registry and retries a few times on error
-func (gcrClient GCRClient) deleteRequestTo(urlSuffix string, allowCompleteFailure bool) {
+func (gcrClient GCRClient) deleteRequestTo(urlSuffix string, allowCompleteFailure bool, silentErrors bool) bool {
 	triesCount := 1
 
 	sleepOrExitOnError := func(err error) {
@@ -79,7 +77,9 @@ func (gcrClient GCRClient) deleteRequestTo(urlSuffix string, allowCompleteFailur
 			log.Fatalf("HTTP request failed many times, fatal error: %v\n", err.Error())
 		}
 
-		log.Infof("HTTP request failed with %v, retrying...\n", err.Error())
+		if !silentErrors {
+			log.Infof("HTTP request failed with %v, retrying...\n", err.Error())
+		}
 
 		triesCount++
 
@@ -88,7 +88,7 @@ func (gcrClient GCRClient) deleteRequestTo(urlSuffix string, allowCompleteFailur
 
 	for {
 		if triesCount >= 4 && allowCompleteFailure {
-			return // request retried too many times but we don't care anymore
+			return false // request retried too many times but we don't care anymore
 		}
 
 		resp, err := gcrClient.client.Do(
@@ -112,6 +112,6 @@ func (gcrClient GCRClient) deleteRequestTo(urlSuffix string, allowCompleteFailur
 			continue
 		}
 
-		return
+		return true
 	}
 }
