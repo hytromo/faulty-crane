@@ -23,67 +23,86 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	switch {
-	case appOptions.Clean.SubcommandEnabled:
-		{
-			options := appOptions.Clean
+	if appOptions.Configure.SubcommandEnabled {
+		configurationhelper.CreateNew(appOptions.Configure)
+		fmt.Printf("Configuration written in %v\n", color.Green(appOptions.Configure.Config))
+		return
+	}
 
-			var parsedRepos []containerregistry.Repository
+	if appOptions.Show.SubcommandEnabled {
+		parsedRepos := configurationhelper.ReadPlan(appOptions.Show.Plan)
+		reporter.ReportRepositoriesStatus(parsedRepos, appOptions.Show.Analytical)
+	}
 
-			// parsed repos are read from a plan file only if it is specified during a normal clean run
-			if !options.DryRun && options.Plan != "" {
-				// normal run, reading from an existent plan file the parsed repos
-				log.Infof("Reading from plan file %v\n", options.Plan)
-				parsedRepos = configurationhelper.ReadPlan(options.Plan)
-			} else {
-				parsedRepos = imagefilters.Parse(
-					containerregistry.MakeGCRClient(containerregistry.GCRClient{
-						Host:      options.ContainerRegistry.Host,
-						AccessKey: options.ContainerRegistry.Access,
-					}).GetAllRepos(),
-					options.Keep,
-				)
-			}
+	if appOptions.Apply.SubcommandEnabled || appOptions.Plan.SubcommandEnabled {
+		options := appOptions.ApplyPlanCommon
 
-			if options.DryRun {
-				reporter.ReportRepositoriesStatus(parsedRepos, appOptions.Clean.AnalyticalPlan)
+		var parsedRepos []containerregistry.Repository
 
-				if options.Plan != "" {
-					configurationhelper.WritePlan(parsedRepos, options.Plan)
-
-					// if the user used a config to produce the dry run, they can use the same config to execute the plan, so here we prepare fully the command for them
-					configStrInfo := ""
-					if options.Config != "" {
-						configStrInfo = fmt.Sprintf(" -config %v", options.Config)
-
-					}
-					log.Infof(
-						"Plan saved to %v, run '%v clean -plan %v%v' to delete exactly the images that have been marked for deletion above",
-						options.Plan, filepath.Base(os.Args[0]), options.Plan, configStrInfo,
-					)
-				}
-			} else {
-				results := containerregistry.MakeGCRClient(containerregistry.GCRClient{
+		// parsed repos are read from a plan file only if it is specified during a normal apply run
+		if appOptions.Apply.SubcommandEnabled && options.Plan != "" {
+			// normal run, reading from an existent plan file the parsed repos
+			log.Infof("Reading from plan file %v\n", options.Plan)
+			parsedRepos = configurationhelper.ReadPlan(options.Plan)
+		} else {
+			log.Infof("Reading repos from registry")
+			parsedRepos = imagefilters.Parse(
+				containerregistry.MakeGCRClient(containerregistry.GCRClient{
 					Host:      options.ContainerRegistry.Host,
 					AccessKey: options.ContainerRegistry.Access,
-				}).DeleteImagesWithNoKeepReason(parsedRepos)
+				}).GetAllRepos(),
+				options.Keep,
+			)
+		}
 
-				if results.ShouldDeleteCount > 0 {
-					log.Infof("Deleted %.2f%% (%v/%v) of the images", float64(results.ManagedToDeleteCount)/float64(results.ShouldDeleteCount)*100, results.ManagedToDeleteCount, results.ShouldDeleteCount)
-				} else {
-					log.Info("Nothing to do")
-				}
+		if appOptions.Plan.SubcommandEnabled {
+			reporter.ReportRepositoriesStatus(parsedRepos, false)
+
+			if options.Plan == "" {
+				return
 			}
+
+			configurationhelper.WritePlan(parsedRepos, options.Plan)
+
+			// if the user used a config to produce the dry run, they can use the same config to execute the plan, so here we prepare fully the command for them
+			configStrInfo := ""
+			if options.Config != "" {
+				configStrInfo = fmt.Sprintf(" -config %v", options.Config)
+
+			}
+
+			log.Infof("Plan saved to %v", options.Plan)
+
+			fmt.Printf(
+				"\n\nTo delete exactly what is planned:\n",
+			)
+
+			fmt.Printf(
+				"    %v apply -plan %v%v",
+				filepath.Base(os.Args[0]), options.Plan, configStrInfo,
+			)
+
+			fmt.Printf(
+				"\n\nTo show analytically what is going to be kept:\n",
+			)
+
+			fmt.Printf(
+				"    %v show -analytical -plan %v\n",
+				filepath.Base(os.Args[0]), options.Plan,
+			)
 		}
-	case appOptions.Configure.SubcommandEnabled:
-		{
-			configurationhelper.CreateNew(appOptions.Configure)
-			fmt.Printf("Configuration written in %v\n", color.Green(appOptions.Configure.Config))
-		}
-	case appOptions.Show.SubcommandEnabled:
-		{
-			parsedRepos := configurationhelper.ReadPlan(appOptions.Show.Plan)
-			reporter.ReportRepositoriesStatus(parsedRepos, appOptions.Show.AnalyticalPlan)
+
+		if appOptions.Apply.SubcommandEnabled {
+			results := containerregistry.MakeGCRClient(containerregistry.GCRClient{
+				Host:      options.ContainerRegistry.Host,
+				AccessKey: options.ContainerRegistry.Access,
+			}).DeleteImagesWithNoKeepReason(parsedRepos)
+
+			if results.ShouldDeleteCount > 0 {
+				log.Infof("Deleted %.2f%% (%v/%v) of the images", float64(results.ManagedToDeleteCount)/float64(results.ShouldDeleteCount)*100, results.ManagedToDeleteCount, results.ShouldDeleteCount)
+			} else {
+				log.Info("Nothing to do")
+			}
 		}
 	}
 }

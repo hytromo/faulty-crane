@@ -7,7 +7,6 @@ package containerregistry
 
 import (
 	"encoding/json"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -107,7 +106,7 @@ func (gcrClient GCRClient) DeleteImage(imageRepo string, image ContainerImage, s
 	// all the tags of the image need to be deleted first
 	atLeastOneTagFailed := false
 	for _, tag := range image.Tag {
-		atLeastOneTagFailed = gcrClient.deleteRequestTo("/"+imageRepo+"/manifests/"+tag, true, silentErrors)
+		atLeastOneTagFailed = !gcrClient.deleteRequestTo("/"+imageRepo+"/manifests/"+tag, true, silentErrors)
 		if atLeastOneTagFailed {
 			break
 		}
@@ -115,11 +114,6 @@ func (gcrClient GCRClient) DeleteImage(imageRepo string, image ContainerImage, s
 
 	if atLeastOneTagFailed {
 		return false
-	}
-
-	if len(image.Tag) > 0 {
-		// some registries take some time to register that the tags have been deleted
-		time.Sleep(time.Second)
 	}
 
 	// after all the image tags have been deleted, we can delete the image itself

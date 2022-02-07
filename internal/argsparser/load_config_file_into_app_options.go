@@ -26,31 +26,31 @@ func replaceMissingAppOptionsFromConfig(appOptions *configuration.AppOptions, co
 	}
 
 	// cli options override config options, so config options should fill in the blanks only
-	if appOptions.Clean.ContainerRegistry.Host == "" {
-		appOptions.Clean.ContainerRegistry.Host = configOptions.ContainerRegistry.Host
+	if appOptions.ApplyPlanCommon.ContainerRegistry.Host == "" {
+		appOptions.ApplyPlanCommon.ContainerRegistry.Host = configOptions.ContainerRegistry.Host
 	}
 
-	if appOptions.Clean.ContainerRegistry.Access == "" {
-		appOptions.Clean.ContainerRegistry.Access = configOptions.ContainerRegistry.Access
+	if appOptions.ApplyPlanCommon.ContainerRegistry.Access == "" {
+		appOptions.ApplyPlanCommon.ContainerRegistry.Access = configOptions.ContainerRegistry.Access
 	}
 
-	if len(appOptions.Clean.Keep.UsedIn.KubernetesClusters) == 0 {
-		appOptions.Clean.Keep.UsedIn.KubernetesClusters = configOptions.Keep.UsedIn.KubernetesClusters
+	if len(appOptions.ApplyPlanCommon.Keep.UsedIn.KubernetesClusters) == 0 {
+		appOptions.ApplyPlanCommon.Keep.UsedIn.KubernetesClusters = configOptions.Keep.UsedIn.KubernetesClusters
 	}
 
-	if appOptions.Clean.Keep.YoungerThan == "" {
-		appOptions.Clean.Keep.YoungerThan = configOptions.Keep.YoungerThan
+	if appOptions.ApplyPlanCommon.Keep.YoungerThan == "" {
+		appOptions.ApplyPlanCommon.Keep.YoungerThan = configOptions.Keep.YoungerThan
 	}
 
-	if len(appOptions.Clean.Keep.Image.Digests) == 0 {
-		appOptions.Clean.Keep.Image.Digests = configOptions.Keep.Image.Digests
+	if len(appOptions.ApplyPlanCommon.Keep.Image.Digests) == 0 {
+		appOptions.ApplyPlanCommon.Keep.Image.Digests = configOptions.Keep.Image.Digests
 	}
 
-	if len(appOptions.Clean.Keep.Image.Tags) == 0 {
-		appOptions.Clean.Keep.Image.Tags = configOptions.Keep.Image.Tags
+	if len(appOptions.ApplyPlanCommon.Keep.Image.Tags) == 0 {
+		appOptions.ApplyPlanCommon.Keep.Image.Tags = configOptions.Keep.Image.Tags
 	}
 
-	if len(appOptions.Clean.Keep.Image.Repositories) == 0 {
-		appOptions.Clean.Keep.Image.Repositories = configOptions.Keep.Image.Repositories
+	if len(appOptions.ApplyPlanCommon.Keep.Image.Repositories) == 0 {
+		appOptions.ApplyPlanCommon.Keep.Image.Repositories = configOptions.Keep.Image.Repositories
 	}
 }

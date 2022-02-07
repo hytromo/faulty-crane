@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -13,6 +14,8 @@ import (
 	"github.com/hytromo/faulty-crane/internal/configuration"
 	"github.com/hytromo/faulty-crane/internal/optionsvalidator"
 )
+
+const ENV_PREFIX = "FAULTY_CRANE_"
 
 func getWrongOptionsError(subCommandsMap map[string]func()) (err error) {
 	allSubcommands := make([]string, len(subCommandsMap))
@@ -70,97 +73,149 @@ func safeParseArguments(flagset *flag.FlagSet, args []string) {
 	}
 }
 
+/*
+This function is required so that sensitive values passed from the environment are not shown in stdout when listing command usage through --help
+*/
+func registerStrParameter(cmd *flag.FlagSet, p *string, name string, envKey string, defaultValue string, usage string) {
+	defaultValueFriendly := "empty"
+
+	if defaultValue != "" {
+		defaultValueFriendly = defaultValue
+	}
+
+	cmd.StringVar(p, name, "", fmt.Sprintf("Description: %v\nEnv var:     %v\nDefault:     %v", usage, envKey, defaultValueFriendly))
+
+	if *p == "" {
+		*p = LookupEnvOrString(envKey, defaultValue)
+	}
+}
+
+func registerBoolParameter(cmd *flag.FlagSet, p *bool, name string, envKey string, defaultValue bool, usage string) {
+	defaultValueFriendly := "false"
+
+	if defaultValue {
+		defaultValueFriendly = "true"
+	}
+
+	cmd.BoolVar(p, name, false, fmt.Sprintf("Description: %v\nEnv var:     %v\nDefault:     %v", usage, envKey, defaultValueFriendly))
+
+	if !*p {
+		*p = LookupEnvOrBool(envKey, defaultValue)
+	}
+}
+
+func addApplyPlanCommonVars(cmd *flag.FlagSet, appOptions *configuration.AppOptions, args []string) {
+
+	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.Config, "config", ENV_PREFIX+"CONFIG", "", "path to the configuration file; can be created through 'faulty-crane configure'; other options can override the configuration")
+
+	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.ContainerRegistry.Host, "registry", ENV_PREFIX+"CONTAINER_REGISTRY_HOST", "", "the registry to clean, e.g. eu.gcr.io")
+	// cmd.StringVar(&appOptions.ApplyPlanCommon.ContainerRegistry.Access, "key", LookupEnvOrString(ENV_PREFIX+"CONTAINER_REGISTRY_ACCESS", ""), "the path to the registry access key file, e.g. a file containing the output of 'gcloud auth print-access-token'")
+	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.ContainerRegistry.Access, "key", ENV_PREFIX+"CONTAINER_REGISTRY_ACCESS", "", "the registry access key, e.g. the output of 'gcloud auth print-access-token', we highly recommend you use an env variable for this")
+
+	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.Keep.YoungerThan, "keep-younger-than", ENV_PREFIX+"KEEP_YOUNGER_THAN", "", "images younger than this value will be kept; provide a duration value, e.g. '10d', '1w3d' or '1d3h'")
+
+	k8sClustersStr := ""
+	imageTags := ""
+	imageDigests := ""
+	imageIDs := ""
+
+	registerStrParameter(cmd, &k8sClustersStr, "keep-used-in-k8s", ENV_PREFIX+"KEEP_USED_IN_K8S", "", "comma-separated list of k8s contexts; any image that is used by these clusters won't be deleted")
+
+	registerStrParameter(cmd, &imageTags, "keep-image-tags", ENV_PREFIX+"KEEP_IMAGE_TAGS", "", "comma-separated list of tags; images with any of these tags will be kept")
+
+	registerStrParameter(cmd, &imageDigests, "keep-image-digests", ENV_PREFIX+"KEEP_IMAGE_DIGESTS", "", "comma-separated list of digests; images with these digests will be kept")
+
+	registerStrParameter(cmd, &imageIDs, "keep-image-repos", ENV_PREFIX+"KEEP_IMAGE_REPOS", "", "comma-separated list of repos; images with in these repos will be kept")
+
+	safeParseArguments(cmd, args)
+
+	if len(k8sClustersStr) > 0 {
+		k8sClustersArr := strings.Split(k8sClustersStr, ",")
+		appOptions.ApplyPlanCommon.Keep.UsedIn.KubernetesClusters = make([]configuration.KubernetesCluster, len(k8sClustersArr))
+		for i, context := range k8sClustersArr {
+			appOptions.ApplyPlanCommon.Keep.UsedIn.KubernetesClusters[i] = configuration.KubernetesCluster{
+				Context: context,
+			}
+		}
+	}
+
+	if len(imageTags) > 0 {
+		imageTagsArr := strings.Split(imageTags, ",")
+		appOptions.ApplyPlanCommon.Keep.Image.Tags = make([]string, len(imageTagsArr))
+		for i, imageTag := range imageTagsArr {
+			appOptions.ApplyPlanCommon.Keep.Image.Tags[i] = imageTag
+		}
+	}
+
+	if len(imageDigests) > 0 {
+		imageDigestsArr := strings.Split(imageDigests, ",")
+		appOptions.ApplyPlanCommon.Keep.Image.Digests = make([]string, len(imageDigestsArr))
+		for i, imageTag := range imageDigestsArr {
+			appOptions.ApplyPlanCommon.Keep.Image.Digests[i] = imageTag
+		}
+	}
+
+	if len(imageIDs) > 0 {
+		imageIDsArr := strings.Split(imageIDs, ",")
+		appOptions.ApplyPlanCommon.Keep.Image.Repositories = make([]string, len(imageIDsArr))
+		for i, imageTag := range imageIDsArr {
+			appOptions.ApplyPlanCommon.Keep.Image.Repositories[i] = imageTag
+		}
+	}
+
+	if appOptions.ApplyPlanCommon.Config != "" {
+		replaceMissingAppOptionsFromConfig(appOptions, appOptions.ApplyPlanCommon.Config)
+	}
+}
+
 // Parse parses a list of strings as cli options and returns the final configuration.
 // Returns an error if the list of strings cannot be parsed.
 func Parse(args []string) (configuration.AppOptions, error) {
-	cleanSubCmd := "clean"
+	applySubCmd := "apply"
+	planSubCmd := "plan"
 	configureSubCmd := "configure"
 	showSubCmd := "show"
-	defaultSubCmd := cleanSubCmd
-	const ENV_PREFIX = "FAULTY_CRANE_"
+	defaultSubCmd := planSubCmd
 
 	var appOptions configuration.AppOptions
 
 	subCommandsMap := map[string]func(){
-		cleanSubCmd: func() {
-			appOptions.Clean.SubcommandEnabled = true
+		planSubCmd: func() {
+			appOptions.Plan.SubcommandEnabled = true
 
-			cleanCmd := flag.NewFlagSet(cleanSubCmd, flag.ExitOnError)
+			planCmd := flag.NewFlagSet(planSubCmd, flag.ExitOnError)
 
-			cleanCmd.BoolVar(&appOptions.Clean.DryRun, "dry-run", LookupEnvOrBool(ENV_PREFIX+"DRY_RUN", false), "just output what is expected to be deleted without actually deleting anything")
-			cleanCmd.BoolVar(&appOptions.Clean.AnalyticalPlan, "analytically", LookupEnvOrBool(ENV_PREFIX+"ANALYTICALLY", false), "print the whole plan, not an aggregation")
+			registerStrParameter(planCmd, &appOptions.ApplyPlanCommon.Plan, "out", ENV_PREFIX+"PLAN", "", "a plan file to write")
 
-			cleanCmd.StringVar(&appOptions.Clean.Plan, "plan", LookupEnvOrString(ENV_PREFIX+"PLAN", ""), "a plan file: use with -dry-run to create a new plan file containing the images marked for deletion; use without -dry-run to read from a plan file which images to delete (if a plan file is specified all the other filters are skipped/ignored)")
+			addApplyPlanCommonVars(planCmd, &appOptions, args)
+		},
+		applySubCmd: func() {
+			appOptions.Apply.SubcommandEnabled = true
 
-			cleanCmd.StringVar(&appOptions.Clean.Config, "config", LookupEnvOrString(ENV_PREFIX+"CONFIG", ""), "path to the configuration file; can be created through 'faulty-crane configure'; other options can override the configuration")
+			applyCmd := flag.NewFlagSet(applySubCmd, flag.ExitOnError)
 
-			cleanCmd.StringVar(&appOptions.Clean.ContainerRegistry.Host, "registry", LookupEnvOrString(ENV_PREFIX+"CONTAINER_REGISTRY_HOST", ""), "the registry to clean, e.g. eu.gcr.io")
-			cleanCmd.StringVar(&appOptions.Clean.ContainerRegistry.Access, "key", LookupEnvOrString(ENV_PREFIX+"CONTAINER_REGISTRY_ACCESS", ""), "the path to the registry access key file, e.g. a file containing the output of 'gcloud auth print-access-token'")
+			addApplyPlanCommonVars(applyCmd, &appOptions, args)
 
-			cleanCmd.StringVar(&appOptions.Clean.Keep.YoungerThan, "keep-younger-than", LookupEnvOrString(ENV_PREFIX+"KEEP_YOUNGER_THAN", ""), "images younger than this value will be kept; provide a duration value, e.g. '10d', '1w3d' or '1d3h'")
-
-			k8sClustersStr := cleanCmd.String("keep-used-in-k8s", LookupEnvOrString(ENV_PREFIX+"KEEP_USED_IN_K8S", ""), "comma-separated list of k8s contexts; any image that is used by these clusters won't be deleted")
-
-			imageTags := cleanCmd.String("keep-image-tags", LookupEnvOrString(ENV_PREFIX+"KEEP_IMAGE_TAGS", ""), "comma-separated list of tags; images with any of these tags will be kept")
-
-			imageDigests := cleanCmd.String("keep-image-digests", LookupEnvOrString(ENV_PREFIX+"KEEP_IMAGE_DIGESTS", ""), "comma-separated list of digests; images with these digests will be kept")
-
-			imageIDs := cleanCmd.String("keep-image-repos", LookupEnvOrString(ENV_PREFIX+"KEEP_IMAGE_REPOS", ""), "comma-separated list of repos; images with in these repos will be kept")
-
-			safeParseArguments(cleanCmd, args)
-
-			if len(*k8sClustersStr) > 0 {
-				k8sClustersArr := strings.Split(*k8sClustersStr, ",")
-				appOptions.Clean.Keep.UsedIn.KubernetesClusters = make([]configuration.KubernetesCluster, len(k8sClustersArr))
-				for i, context := range k8sClustersArr {
-					appOptions.Clean.Keep.UsedIn.KubernetesClusters[i] = configuration.KubernetesCluster{
-						Context: context,
-					}
-				}
+			if applyCmd.NArg() != 0 {
+				// has plan nfile
+				appOptions.ApplyPlanCommon.Plan = applyCmd.Args()[0]
+				log.Info("Got plan file ", appOptions.ApplyPlanCommon.Plan)
 			}
 
-			if len(*imageTags) > 0 {
-				imageTagsArr := strings.Split(*imageTags, ",")
-				appOptions.Clean.Keep.Image.Tags = make([]string, len(imageTagsArr))
-				for i, imageTag := range imageTagsArr {
-					appOptions.Clean.Keep.Image.Tags[i] = imageTag
-				}
-			}
-
-			if len(*imageDigests) > 0 {
-				imageDigestsArr := strings.Split(*imageDigests, ",")
-				appOptions.Clean.Keep.Image.Digests = make([]string, len(imageDigestsArr))
-				for i, imageTag := range imageDigestsArr {
-					appOptions.Clean.Keep.Image.Digests[i] = imageTag
-				}
-			}
-
-			if len(*imageIDs) > 0 {
-				imageIDsArr := strings.Split(*imageIDs, ",")
-				appOptions.Clean.Keep.Image.Repositories = make([]string, len(imageIDsArr))
-				for i, imageTag := range imageIDsArr {
-					appOptions.Clean.Keep.Image.Repositories[i] = imageTag
-				}
-			}
-
-			if appOptions.Clean.Config != "" {
-				replaceMissingAppOptionsFromConfig(&appOptions, appOptions.Clean.Config)
-			}
 		},
 		configureSubCmd: func() {
 			appOptions.Configure.SubcommandEnabled = true
 
 			configureCmd := flag.NewFlagSet(configureSubCmd, flag.ExitOnError)
-			configureCmd.StringVar(&appOptions.Configure.Config, "o", LookupEnvOrString(ENV_PREFIX+"CONFIG", "faulty-crane.json"), "the file to save the configuration to")
+			registerStrParameter(configureCmd, &appOptions.Configure.Config, "out", ENV_PREFIX+"CONFIG", filepath.Base(os.Args[0])+".json", "the file to save the configuration to")
 			safeParseArguments(configureCmd, args)
 		},
 		showSubCmd: func() {
 			appOptions.Show.SubcommandEnabled = true
 
 			showCmd := flag.NewFlagSet(showSubCmd, flag.ExitOnError)
-			showCmd.StringVar(&appOptions.Show.Plan, "plan", LookupEnvOrString(ENV_PREFIX+"PLAN", "plan.out"), "the plan file to show")
-			showCmd.BoolVar(&appOptions.Show.AnalyticalPlan, "analytically", LookupEnvOrBool(ENV_PREFIX+"ANALYTICALLY", false), "print the whole plan, not an aggregation")
-			// TODO: parallelize image deletion with prorgessbar etc
+			registerStrParameter(showCmd, &appOptions.Show.Plan, "plan", ENV_PREFIX+"PLAN", "plan.out", "the plan file to show")
+			registerBoolParameter(showCmd, &appOptions.Show.Analytical, "analytical", ENV_PREFIX+"ANALYTICAL", false, "print the whole plan, not an aggregation")
 			safeParseArguments(showCmd, args)
 		},
 	}

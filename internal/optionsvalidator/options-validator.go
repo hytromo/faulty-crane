@@ -12,8 +12,8 @@ func Validate(options configuration.AppOptions) error {
 		if options.Configure.Config == "" {
 			return errors.New("please specify a configuration file to save your answers to")
 		}
-	} else if options.Clean.SubcommandEnabled {
-		if options.Clean.ContainerRegistry.Host == "" || options.Clean.ContainerRegistry.Access == "" {
+	} else if options.Apply.SubcommandEnabled {
+		if options.ApplyPlanCommon.ContainerRegistry.Host == "" || options.ApplyPlanCommon.ContainerRegistry.Access == "" {
 			return errors.New("please specify a valid container registry and access key")
 		}
 	}

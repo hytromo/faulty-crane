@@ -156,11 +156,18 @@ func ReportRepositoriesStatus(repos []containerregistry.Repository, showAnalytic
 			keepTotalSizeBytes = keepTotalSizeBytes + keepTotalSizeBytesInRepo
 
 			tableValues[1] = fmt.Sprintf("%6.2f%% / %v/%v", float64(deletedImagesCountInRepo)/float64(totalImagesCountInRepo)*100, deletedImagesCountInRepo, totalImagesCountInRepo)
+
+			colorToPaint := tablewriter.Colors{tablewriter.Normal}
 			if deletedImagesCountInRepo == totalImagesCountInRepo {
-				tableColors[0] = tablewriter.Colors{tablewriter.FgRedColor}
-				tableColors[1] = tablewriter.Colors{tablewriter.FgRedColor}
-				tableColors[2] = tablewriter.Colors{tablewriter.FgRedColor}
-				tableColors[3] = tablewriter.Colors{tablewriter.FgRedColor}
+				colorToPaint = tablewriter.Colors{tablewriter.FgRedColor}
+			} else if deletedImagesCountInRepo > 0 {
+				colorToPaint = tablewriter.Colors{tablewriter.FgYellowColor}
+			} else if deletedImagesCountInRepo == 0 {
+				colorToPaint = tablewriter.Colors{tablewriter.FgGreenColor}
+			}
+
+			for i, _ := range tableColors {
+				tableColors[i] = colorToPaint
 			}
 
 			tableValues[2] = fmt.Sprintf("%v/%v", stringutil.HumanFriendlySize(deleteTotalSizeInRepoBytes), stringutil.HumanFriendlySize(deleteTotalSizeInRepoBytes+keepTotalSizeBytesInRepo))

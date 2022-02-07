@@ -38,14 +38,20 @@ type Configuration struct {
 	Keep              KeepImages
 }
 
-// CleanSubcommandOptions defines the options of the clean subcommand
-type CleanSubcommandOptions struct {
+// ApplySubcommandOptions defines the options of the apply subcommand
+type ApplySubcommandOptions struct {
 	SubcommandEnabled bool
-	DryRun            bool
-	// Plan can be used either with or without dry-run to write or read a plan file, correspondingly
-	Plan           string
-	AnalyticalPlan bool
-	// Config is where to read configuration from
+}
+
+// PlanSubcommandOptions defines the options of the plan subcommand
+type PlanSubcommandOptions struct {
+	SubcommandEnabled bool
+}
+
+type ApplyPlanCommonSubcommandOptions struct {
+	// Plan file to write, or to read from for deleting images
+	Plan string
+	// Config is the path of the configuration file
 	Config            string
 	ContainerRegistry ContainerRegistry
 	Keep              KeepImages
@@ -62,13 +68,15 @@ type ConfigureSubcommandOptions struct {
 type ShowSubcommandOptions struct {
 	SubcommandEnabled bool
 	// Plan is the path to the plan file to show
-	Plan           string
-	AnalyticalPlan bool
+	Plan       string
+	Analytical bool
 }
 
 // AppOptions groups all the possible application options in a single struct
 type AppOptions struct {
-	Clean     CleanSubcommandOptions
-	Configure ConfigureSubcommandOptions
-	Show      ShowSubcommandOptions
+	Configure       ConfigureSubcommandOptions
+	Plan            PlanSubcommandOptions
+	Show            ShowSubcommandOptions
+	Apply           ApplySubcommandOptions
+	ApplyPlanCommon ApplyPlanCommonSubcommandOptions
 }

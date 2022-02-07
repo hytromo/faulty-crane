@@ -3,36 +3,32 @@ package argsparser
 import "testing"
 
 func TestParse(t *testing.T) {
-	cliOptions, err := Parse([]string{"app", "clean", "-dry-run"})
+	cliOptions, err := Parse([]string{"app", "plan", "-out", "plan.out"})
 
 	if err != nil {
 		t.Error("Err should be nil")
 	}
 
-	if !cliOptions.Clean.SubcommandEnabled {
-		t.Error("The clean command should be enabled")
+	if !cliOptions.Apply.SubcommandEnabled {
+		t.Error("The apply command should be enabled")
 	}
 
-	if !cliOptions.Clean.DryRun {
-		t.Error("Dry run option should be enabled")
+	if cliOptions.ApplyPlanCommon.Plan == "" {
+		t.Error("Plan should not be empty")
 	}
 
 	if cliOptions.Configure.SubcommandEnabled {
 		t.Error("The configure subcommand should not be enabled")
 	}
 
-	cliOptions, err = Parse([]string{"app", "clean"})
+	cliOptions, err = Parse([]string{"app", "apply"})
 
 	if err != nil {
 		t.Error("Err should be nil")
 	}
 
-	if !cliOptions.Clean.SubcommandEnabled {
-		t.Error("The clean command should be enabled")
-	}
-
-	if cliOptions.Clean.DryRun {
-		t.Error("Dry run option should not be enabled")
+	if !cliOptions.Apply.SubcommandEnabled {
+		t.Error("The apply command should be enabled")
 	}
 
 	if cliOptions.Configure.SubcommandEnabled {
@@ -58,8 +54,8 @@ func TestParse(t *testing.T) {
 		t.Error("Configuration file has wrong value")
 	}
 
-	if cliOptions.Clean.SubcommandEnabled {
-		t.Error("The clean subcommand should not be enabled")
+	if cliOptions.Apply.SubcommandEnabled {
+		t.Error("The apply subcommand should not be enabled")
 	}
 
 	cliOptions, err = Parse([]string{"app"})
