@@ -13,33 +13,17 @@ import (
 	"github.com/hytromo/faulty-crane/internal/utils/stringutil"
 )
 
-// catalogDTO is the Data Transfer Object for the catalog api call
-type catalogDTO struct {
-	// Next is used for pagination purposes, it contains the next URL we need to GET for the next page
-	Next         string
-	Repositories []string
-}
-
-// listTagsDTO is the Data Transfer Object for the list tags api call
-type listTagsDTO struct {
-	// Manifest keys are the image digest
-	Manifest map[string]ContainerImage
-	Name     string
-	Tags     []string
-	Next     string
-}
-
 func (gcrClient GCRClient) getRepositories() []string {
 	repositories := []string{}
 
-	catalogResp := catalogDTO{
+	catalogResp := CatalogDTO{
 		Next: "/_catalog", // initial request
 	}
 
 	for {
 		bodyBytes := gcrClient.getRequestTo(catalogResp.Next)
 
-		catalogResp = catalogDTO{}
+		catalogResp = CatalogDTO{}
 		err := json.Unmarshal(bodyBytes, &catalogResp)
 
 		repositories = append(repositories, catalogResp.Repositories...)
@@ -68,14 +52,14 @@ func (gcrClient GCRClient) listTags(repositoryLink string) Repository {
 		Images: []ContainerImage{},
 	}
 
-	listTagsResp := listTagsDTO{
+	listTagsResp := ListTagsDTO{
 		Next: "/" + repositoryLink + "/tags/list", // initial request
 	}
 
 	for {
 		bodyBytes := gcrClient.getRequestTo(listTagsResp.Next)
 
-		listTagsResp = listTagsDTO{}
+		listTagsResp = ListTagsDTO{}
 		err := json.Unmarshal(bodyBytes, &listTagsResp)
 
 		for digest, image := range listTagsResp.Manifest {

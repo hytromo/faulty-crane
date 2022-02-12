@@ -108,9 +108,9 @@ func addApplyPlanCommonVars(cmd *flag.FlagSet, appOptions *configuration.AppOpti
 
 	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.Config, "config", ENV_PREFIX+"CONFIG", "", "path to the configuration file; can be created through 'faulty-crane configure'; other options can override the configuration")
 
-	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.ContainerRegistry.Host, "registry", ENV_PREFIX+"CONTAINER_REGISTRY_HOST", "", "the registry to clean, e.g. eu.gcr.io")
+	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.GoogleContainerRegistry.Host, "registry", ENV_PREFIX+"CONTAINER_REGISTRY_HOST", "", "the registry to clean, e.g. eu.gcr.io")
 	// cmd.StringVar(&appOptions.ApplyPlanCommon.ContainerRegistry.Access, "key", LookupEnvOrString(ENV_PREFIX+"CONTAINER_REGISTRY_ACCESS", ""), "the path to the registry access key file, e.g. a file containing the output of 'gcloud auth print-access-token'")
-	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.ContainerRegistry.Access, "key", ENV_PREFIX+"CONTAINER_REGISTRY_ACCESS", "", "the registry access key, e.g. the output of 'gcloud auth print-access-token', we highly recommend you use an env variable for this")
+	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.GoogleContainerRegistry.Token, "key", ENV_PREFIX+"CONTAINER_REGISTRY_ACCESS", "", "the registry access key, e.g. the output of 'gcloud auth print-access-token', we highly recommend you use an env variable for this")
 
 	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.Keep.YoungerThan, "keep-younger-than", ENV_PREFIX+"KEEP_YOUNGER_THAN", "", "images younger than this value will be kept; provide a duration value, e.g. '10d', '1w3d' or '1d3h'")
 

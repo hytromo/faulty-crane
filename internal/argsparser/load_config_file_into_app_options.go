@@ -26,12 +26,12 @@ func replaceMissingAppOptionsFromConfig(appOptions *configuration.AppOptions, co
 	}
 
 	// cli options override config options, so config options should fill in the blanks only
-	if appOptions.ApplyPlanCommon.ContainerRegistry.Host == "" {
-		appOptions.ApplyPlanCommon.ContainerRegistry.Host = configOptions.ContainerRegistry.Host
+	if appOptions.ApplyPlanCommon.GoogleContainerRegistry.Host == "" {
+		appOptions.ApplyPlanCommon.GoogleContainerRegistry.Host = configOptions.GCR.Host
 	}
 
-	if appOptions.ApplyPlanCommon.ContainerRegistry.Access == "" {
-		appOptions.ApplyPlanCommon.ContainerRegistry.Access = configOptions.ContainerRegistry.Access
+	if appOptions.ApplyPlanCommon.GoogleContainerRegistry.Token == "" {
+		appOptions.ApplyPlanCommon.GoogleContainerRegistry.Token = configOptions.GCR.Token
 	}
 
 	if len(appOptions.ApplyPlanCommon.Keep.UsedIn.KubernetesClusters) == 0 {

@@ -11,6 +11,7 @@ import (
 	"github.com/hytromo/faulty-crane/internal/configurationhelper"
 	"github.com/hytromo/faulty-crane/internal/containerregistry"
 	"github.com/hytromo/faulty-crane/internal/imagefilters"
+	"github.com/hytromo/faulty-crane/internal/orchestrator"
 	"github.com/hytromo/faulty-crane/internal/reporter"
 	color "github.com/logrusorgru/aurora"
 )
@@ -46,11 +47,9 @@ func main() {
 			parsedRepos = configurationhelper.ReadPlan(options.Plan)
 		} else {
 			log.Infof("Reading repos from registry")
+			orchestrator := orchestrator.NewOrchestrator(appOptions)
 			parsedRepos = imagefilters.Parse(
-				containerregistry.MakeGCRClient(containerregistry.GCRClient{
-					Host:      options.ContainerRegistry.Host,
-					AccessKey: options.ContainerRegistry.Access,
-				}).GetAllRepos(),
+				orchestrator.GetAllRepos(),
 				options.Keep,
 			)
 		}
@@ -93,10 +92,8 @@ func main() {
 		}
 
 		if appOptions.Apply.SubcommandEnabled {
-			results := containerregistry.MakeGCRClient(containerregistry.GCRClient{
-				Host:      options.ContainerRegistry.Host,
-				AccessKey: options.ContainerRegistry.Access,
-			}).DeleteImagesWithNoKeepReason(parsedRepos)
+			orchestrator := orchestrator.NewOrchestrator(appOptions)
+			results := orchestrator.DeleteImagesWithNoKeepReason(parsedRepos)
 
 			if results.ShouldDeleteCount > 0 {
 				log.Infof("Deleted %.2f%% (%v/%v) of the images", float64(results.ManagedToDeleteCount)/float64(results.ShouldDeleteCount)*100, results.ManagedToDeleteCount, results.ShouldDeleteCount)

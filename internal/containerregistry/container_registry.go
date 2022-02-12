@@ -16,31 +16,6 @@ type GCRClient struct {
 	client    *http.Client
 }
 
-// Repository is a struct that holds information about a container registry's repository
-type Repository struct {
-	// Link is the relative link, also refered to as "image name" on the documentation, each repository can contain a lot of images with different tags and manifests
-	Link   string
-	Images []ContainerImage
-}
-
-// ContainerImage contains all the data that are relevant to an image on the registry
-type ContainerImage struct {
-	ImageSizeBytes string
-	LayerID        string `json:"layerId"`
-	MediaType      string
-	Tag            []string
-	TimeCreatedMs  string
-	TimeUploadedMs string
-	Digest         string
-	Repo           string               // Repo is the name of the image's repository without the tag in the form e.g. eu.gcr.io/faulty-crane-project/faulty-crane-test
-	KeptData       keepreasons.KeptData `json:",omitempty"`
-}
-
-type RepoDeletionResult struct {
-	ShouldDeleteCount    int
-	ManagedToDeleteCount int
-}
-
 // MakeGCRClient builds a new GCRClient instance, adding the missing default values e.g. http client
 func MakeGCRClient(client GCRClient) GCRClient {
 	gcrClient := client

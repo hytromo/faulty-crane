@@ -13,7 +13,7 @@ func Validate(options configuration.AppOptions) error {
 			return errors.New("please specify a configuration file to save your answers to")
 		}
 	} else if options.Apply.SubcommandEnabled {
-		if options.ApplyPlanCommon.ContainerRegistry.Host == "" || options.ApplyPlanCommon.ContainerRegistry.Access == "" {
+		if options.ApplyPlanCommon.GoogleContainerRegistry.Host == "" || options.ApplyPlanCommon.GoogleContainerRegistry.Token == "" {
 			return errors.New("please specify a valid container registry and access key")
 		}
 	}

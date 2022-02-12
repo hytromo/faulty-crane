@@ -12,9 +12,9 @@ import (
 
 func constructConfigurationFromAnswers(answers UserInput) configuration.Configuration {
 	config := configuration.Configuration{}
-	config.ContainerRegistry = configuration.ContainerRegistry{
-		Access: answers.containerRegistryAccess,
-		Host:   answers.containerRegistryLink,
+	config.GCR = configuration.GoogleContainerRegistry{
+		Token: answers.containerRegistryAccess,
+		Host:  answers.containerRegistryLink,
 	}
 
 	config.Keep.YoungerThan = answers.youngerThan

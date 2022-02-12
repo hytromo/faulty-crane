@@ -7,10 +7,10 @@ type KubernetesCluster struct {
 	RunningInside bool // RunningInside means that faulty-crane is running inside this cluster and thus the k8s client needs specific options to communicate with this cluster
 }
 
-// ContainerRegistry keeps the needed data for the container registry
-type ContainerRegistry struct {
-	Host   string
-	Access string
+// GoogleContainerRegistry keeps the needed data for the container registry
+type GoogleContainerRegistry struct {
+	Host  string
+	Token string
 }
 
 // UsedIn defines a list of resources that could use container images
@@ -34,8 +34,8 @@ type KeepImages struct {
 
 // Configuration struct shows the structure of the configuration file used by this app
 type Configuration struct {
-	ContainerRegistry ContainerRegistry
-	Keep              KeepImages
+	GCR  GoogleContainerRegistry `json:",omitempty"`
+	Keep KeepImages
 }
 
 // ApplySubcommandOptions defines the options of the apply subcommand
@@ -52,9 +52,9 @@ type ApplyPlanCommonSubcommandOptions struct {
 	// Plan file to write, or to read from for deleting images
 	Plan string
 	// Config is the path of the configuration file
-	Config            string
-	ContainerRegistry ContainerRegistry
-	Keep              KeepImages
+	Config                  string
+	GoogleContainerRegistry GoogleContainerRegistry
+	Keep                    KeepImages
 }
 
 // ConfigureSubcommandOptions defines the options of the configure subcommand
