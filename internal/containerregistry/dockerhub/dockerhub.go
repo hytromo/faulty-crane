@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Rican7/conjson"
@@ -170,8 +169,4 @@ func NewHubClient(params NewHubClientParams) cr.ContainerRegistryClient {
 		}),
 		namespace: params.Namespace,
 	}
-}
-
-func getFriendlyRepoLink(repoLink string) string {
-	return strings.Replace(repoLink, BASE_URL+"/repositories/", "", 1)
 }

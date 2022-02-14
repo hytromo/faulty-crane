@@ -16,11 +16,13 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	appsV1 "k8s.io/client-go/kubernetes/typed/apps/v1"
+	batchV1 "k8s.io/client-go/kubernetes/typed/batch/v1"
 
 	// apiAppsV1 "k8s.io/client-go/listers/apps/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	apiAppsV1 "k8s.io/api/apps/v1"
+	apiBatchV1 "k8s.io/api/batch/v1"
 	apiCoreV1 "k8s.io/api/core/v1"
 	// metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -32,6 +34,7 @@ type ClusterWithAPI struct {
 	RunningInside bool // RunningInside means that this app is running inside this cluster (and thus different configuration options need to be specified)
 	CoreV1        coreV1.CoreV1Interface
 	AppsV1        appsV1.AppsV1Interface
+	BatchV1       batchV1.BatchV1Interface
 }
 
 // K8s struct provides an object that fetches resources from multiple k8s clusters
@@ -42,6 +45,16 @@ type K8s struct {
 type podsContainer struct {
 	ClusterWithAPI *ClusterWithAPI
 	PodList        *apiCoreV1.PodList
+}
+
+type jobsContainer struct {
+	ClusterWithAPI *ClusterWithAPI
+	JobList        *apiBatchV1.JobList
+}
+
+type cronJobsContainer struct {
+	ClusterWithAPI *ClusterWithAPI
+	CronJobList    *apiBatchV1.CronJobList
 }
 
 type deploymentsContainer struct {
@@ -109,6 +122,7 @@ func NewK8s(clusters []configuration.KubernetesCluster) K8s {
 			Context:   cluster.Context,
 			CoreV1:    clientset.CoreV1(),
 			AppsV1:    clientset.AppsV1(),
+			BatchV1:   clientset.BatchV1(),
 		}
 	}
 
@@ -132,6 +146,44 @@ func (k8s *K8s) getPods(waitGroup *sync.WaitGroup, podsChan chan<- podsContainer
 	}
 
 	close(podsChan)
+}
+
+func (k8s *K8s) getJobs(waitGroup *sync.WaitGroup, jobsChan chan<- jobsContainer) {
+	defer waitGroup.Done()
+
+	for index, cluster := range k8s.Clusters {
+		jobs, err := cluster.BatchV1.Jobs(cluster.Namespace).List(context.TODO(), metav1.ListOptions{})
+
+		if err != nil {
+			log.Fatal("Could not read jobs: ", err.Error())
+		}
+
+		jobsChan <- jobsContainer{
+			ClusterWithAPI: &k8s.Clusters[index],
+			JobList:        jobs,
+		}
+	}
+
+	close(jobsChan)
+}
+
+func (k8s *K8s) getCronJobs(waitGroup *sync.WaitGroup, cronJobChan chan<- cronJobsContainer) {
+	defer waitGroup.Done()
+
+	for index, cluster := range k8s.Clusters {
+		cronJob, err := cluster.BatchV1.CronJobs(cluster.Namespace).List(context.TODO(), metav1.ListOptions{})
+
+		if err != nil {
+			log.Fatal("Could not read cronJob: ", err.Error())
+		}
+
+		cronJobChan <- cronJobsContainer{
+			ClusterWithAPI: &k8s.Clusters[index],
+			CronJobList:    cronJob,
+		}
+	}
+
+	close(cronJobChan)
 }
 
 func (k8s *K8s) getDeployments(waitGroup *sync.WaitGroup, deploymentsChan chan<- deploymentsContainer) {
@@ -197,15 +249,19 @@ func (k8s K8s) GetUsedImages() map[string]*ClusterWithAPI {
 
 	// TODO: can we make a channel that never blocks on range read? E.g. it reads whatever is there and then unblocks
 	podsChan := make(chan podsContainer, len(k8s.Clusters))
+	jobsChan := make(chan jobsContainer, len(k8s.Clusters))
+	cronJobsChan := make(chan cronJobsContainer, len(k8s.Clusters))
 	deploymentsChan := make(chan deploymentsContainer, len(k8s.Clusters))
 	replicaSetsChan := make(chan replicaSetsContainer, len(k8s.Clusters))
 	statefulSetsChan := make(chan statefulSetsContainer, len(k8s.Clusters))
 
 	log.Infof("Reading %v kubernetes cluster(s)...\n", len(k8s.Clusters))
 
-	waitGroup.Add(4)
+	waitGroup.Add(6)
 
 	go k8s.getPods(&waitGroup, podsChan)
+	go k8s.getJobs(&waitGroup, jobsChan)
+	go k8s.getCronJobs(&waitGroup, cronJobsChan)
 	go k8s.getDeployments(&waitGroup, deploymentsChan)
 	go k8s.getReplicaSets(&waitGroup, replicaSetsChan)
 	go k8s.getStatefulSets(&waitGroup, statefulSetsChan)
@@ -216,6 +272,14 @@ func (k8s K8s) GetUsedImages() map[string]*ClusterWithAPI {
 
 	for pods := range podsChan {
 		extractImagesFromPods(pods, &images)
+	}
+
+	for jobs := range jobsChan {
+		extractImagesFromJobs(jobs, &images)
+	}
+
+	for cronJobs := range cronJobsChan {
+		extractImagesFromCronJobs(cronJobs, &images)
 	}
 
 	for deployments := range deploymentsChan {
@@ -229,6 +293,8 @@ func (k8s K8s) GetUsedImages() map[string]*ClusterWithAPI {
 	for statefulSets := range statefulSetsChan {
 		extractImagesFromStatefulSets(statefulSets, &images)
 	}
+
+	log.Infof("%v images extracted", len(images))
 
 	return images
 }

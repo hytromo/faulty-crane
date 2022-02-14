@@ -31,6 +31,22 @@ func extractImagesFromPods(pods podsContainer, images *map[string]*ClusterWithAP
 	}
 }
 
+func extractImagesFromJobs(jobs jobsContainer, images *map[string]*ClusterWithAPI) {
+	for _, job := range jobs.JobList.Items {
+		for _, image := range extractImagesFromSpec(job.Spec.Template.Spec) {
+			(*images)[image] = jobs.ClusterWithAPI
+		}
+	}
+}
+
+func extractImagesFromCronJobs(cronJobs cronJobsContainer, images *map[string]*ClusterWithAPI) {
+	for _, job := range cronJobs.CronJobList.Items {
+		for _, image := range extractImagesFromSpec(job.Spec.JobTemplate.Spec.Template.Spec) {
+			(*images)[image] = cronJobs.ClusterWithAPI
+		}
+	}
+}
+
 func extractImagesFromDeployments(deployments deploymentsContainer, images *map[string]*ClusterWithAPI) {
 	for _, deployment := range deployments.DeploymentList.Items {
 		for _, image := range extractImagesFromSpec(deployment.Spec.Template.Spec) {
