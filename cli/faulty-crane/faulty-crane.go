@@ -47,7 +47,8 @@ func main() {
 			parsedRepos = configurationhelper.ReadPlan(options.Plan)
 		} else {
 			log.Infof("Reading repos from registry")
-			orchestrator := orchestrator.NewOrchestrator(appOptions)
+			orchestrator := orchestrator.NewOrchestrator(&appOptions)
+			orchestrator.Init()
 			parsedRepos = imagefilters.Parse(
 				orchestrator.GetAllRepos(),
 				options.Keep,
@@ -92,7 +93,8 @@ func main() {
 		}
 
 		if appOptions.Apply.SubcommandEnabled {
-			orchestrator := orchestrator.NewOrchestrator(appOptions)
+			orchestrator := orchestrator.NewOrchestrator(&appOptions)
+			orchestrator.Init()
 			results := orchestrator.DeleteImagesWithNoKeepReason(parsedRepos)
 
 			if results.ShouldDeleteCount > 0 {

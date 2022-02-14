@@ -5,7 +5,9 @@ import (
 
 	"github.com/cheggaaa/pb/v3"
 	"github.com/hytromo/faulty-crane/internal/configuration"
+	"github.com/hytromo/faulty-crane/internal/configurationhelper"
 	cr "github.com/hytromo/faulty-crane/internal/containerregistry"
+	"github.com/hytromo/faulty-crane/internal/containerregistry/dockerhub"
 	"github.com/hytromo/faulty-crane/internal/containerregistry/gcr"
 	"github.com/hytromo/faulty-crane/internal/keepreasons"
 	log "github.com/sirupsen/logrus"
@@ -14,14 +16,28 @@ import (
 // Orchestrator is the entry-point of the commands and handles high level things like implementing goroutines and showing terminal output
 type Orchestrator struct {
 	crClient cr.ContainerRegistryClient
+	options  *configuration.AppOptions
 }
 
-func NewOrchestrator(options configuration.AppOptions) Orchestrator {
-	return Orchestrator{
-		crClient: gcr.NewGCRClient(gcr.NewGCRClientParams{
+func NewOrchestrator(options *configuration.AppOptions) Orchestrator {
+	var crClient cr.ContainerRegistryClient
+
+	if configurationhelper.IsGCR(options) {
+		crClient = gcr.NewGCRClient(gcr.NewGCRClientParams{
 			Hostname: options.ApplyPlanCommon.GoogleContainerRegistry.Host,
 			Token:    options.ApplyPlanCommon.GoogleContainerRegistry.Token,
-		}),
+		})
+	} else if configurationhelper.IsDockerhub(options) {
+		crClient = dockerhub.NewHubClient(dockerhub.NewHubClientParams{
+			Namespace: options.ApplyPlanCommon.DockerhubContainerRegistry.Namespace,
+		})
+	} else {
+		log.Fatal("Please configure a registry to fetch from")
+	}
+
+	return Orchestrator{
+		options:  options,
+		crClient: crClient,
 	}
 }
 
@@ -35,7 +51,27 @@ func getNeedingDeletionInRepoCount(repo cr.Repository) int {
 	return repoImagesToDelete
 }
 
-func (orchestrator Orchestrator) deleteImageFromChan(repoLink string, imagesToDeleteChan chan cr.ContainerImage, imagesDeletedChan chan error) {
+// Init does all the required steps (like logging-in into the container registry, if needed) before starting doing CR api calls
+func (orchestrator *Orchestrator) Init() {
+	username := ""
+	password := ""
+	config := orchestrator.options.ApplyPlanCommon
+
+	if configurationhelper.IsGCR(orchestrator.options) {
+		log.Info("Configuring GCR...")
+		password = config.GoogleContainerRegistry.Token
+	} else if configurationhelper.IsDockerhub(orchestrator.options) {
+		log.Info("Configuring Dockerhub...")
+		username = config.DockerhubContainerRegistry.Username
+		password = config.DockerhubContainerRegistry.Password
+	} else {
+		log.Fatal("Please configure a registry to fetch from")
+	}
+
+	orchestrator.crClient.Login(username, password)
+}
+
+func (orchestrator *Orchestrator) deleteImageFromChan(repoLink string, imagesToDeleteChan chan cr.ContainerImage, imagesDeletedChan chan error) {
 	for image := range imagesToDeleteChan {
 		imagesDeletedChan <- orchestrator.crClient.DeleteImage(repoLink, image, false)
 	}

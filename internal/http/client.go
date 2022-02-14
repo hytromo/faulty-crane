@@ -1,10 +1,11 @@
 package http
 
 import (
+	"bytes"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -16,29 +17,50 @@ type InjectAuthInRequest func(req *http.Request)
 type HttpClient struct {
 	BaseUrl             string
 	realClient          *http.Client
-	injectAuthInRequest InjectAuthInRequest
+	InjectAuthInRequest InjectAuthInRequest
 }
 
-func (httpClient HttpClient) newGET(urlSuffix string) *http.Request {
-	fmt.Println("Getting", httpClient.BaseUrl+urlSuffix)
+func (httpClient HttpClient) newPOST(url string, jsonPayload []byte) *http.Request {
+	req, _ := http.NewRequest("POST", httpClient.getFullUrlFor(url), bytes.NewBuffer(jsonPayload))
+	req.Header.Set("Content-Type", "application/json")
 
-	req, _ := http.NewRequest("GET", httpClient.BaseUrl+urlSuffix, nil)
-
-	httpClient.injectAuthInRequest(req)
+	if httpClient.InjectAuthInRequest != nil {
+		httpClient.InjectAuthInRequest(req)
+	}
 
 	return req
 }
 
-func (httpClient HttpClient) newDELETE(urlSuffix string) *http.Request {
-	req, _ := http.NewRequest("DELETE", httpClient.BaseUrl+urlSuffix, nil)
+func (httpClient *HttpClient) getFullUrlFor(url string) string {
+	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
+		return url
+	}
 
-	httpClient.injectAuthInRequest(req)
+	return httpClient.BaseUrl + url
+}
+
+func (httpClient HttpClient) newGET(url string) *http.Request {
+	req, _ := http.NewRequest("GET", httpClient.getFullUrlFor(url), nil)
+
+	if httpClient.InjectAuthInRequest != nil {
+		httpClient.InjectAuthInRequest(req)
+	}
 
 	return req
 }
 
-// GetRequestTo does a GET request to the container registry and retries a few times on error
-func (httpClient HttpClient) GetRequestTo(urlSuffix string) []byte {
+func (httpClient HttpClient) newDELETE(url string) *http.Request {
+	req, _ := http.NewRequest("DELETE", httpClient.getFullUrlFor(url), nil)
+
+	if httpClient.InjectAuthInRequest != nil {
+		httpClient.InjectAuthInRequest(req)
+	}
+
+	return req
+}
+
+// GetRequestTo does a GET request and retries a few times on error
+func (httpClient HttpClient) GetRequestTo(url string) ([]byte, error) {
 	triesCount := 1
 
 	sleepOrExitOnError := func(err error) {
@@ -55,7 +77,7 @@ func (httpClient HttpClient) GetRequestTo(urlSuffix string) []byte {
 
 	for {
 		resp, err := httpClient.realClient.Do(
-			httpClient.newGET(urlSuffix),
+			httpClient.newGET(url),
 		)
 
 		if err != nil {
@@ -75,12 +97,60 @@ func (httpClient HttpClient) GetRequestTo(urlSuffix string) []byte {
 			continue
 		}
 
-		return bodyBytes
+		return bodyBytes, err
 	}
 }
 
-// DeleteRequestTo does a DELETE request to the container registry and retries a few times on error
-func (httpClient HttpClient) DeleteRequestTo(urlSuffix string, allowCompleteFailure bool, silentErrors bool) error {
+// PostRequestTo does a POST request and retries a few times on error
+func (httpClient HttpClient) PostRequestTo(url string, jsonPayload []byte, allowCompleteFailure bool, silentErrors bool) ([]byte, error) {
+	triesCount := 1
+
+	sleepOrExitOnError := func(err error) {
+		if triesCount > 3 && !allowCompleteFailure {
+			log.Fatalf("HTTP request failed many times, fatal error: %v\n", err.Error())
+		}
+
+		if !silentErrors {
+			log.Infof("HTTP request failed with %v, retrying...\n", err.Error())
+		}
+
+		triesCount++
+
+		time.Sleep(1000 * time.Millisecond)
+	}
+
+	for {
+		if triesCount >= 4 && allowCompleteFailure {
+			return nil, nil // request retried too many times but we don't care anymore
+		}
+
+		resp, err := httpClient.realClient.Do(
+			httpClient.newPOST(url, jsonPayload),
+		)
+
+		if err != nil {
+			sleepOrExitOnError(err)
+			continue
+		}
+
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+
+		if err != nil {
+			sleepOrExitOnError(err)
+			continue
+		}
+
+		if resp.StatusCode < 200 || resp.StatusCode > 299 {
+			sleepOrExitOnError(errors.New(string(bodyBytes)))
+			continue
+		}
+
+		return bodyBytes, err
+	}
+}
+
+// DeleteRequestTo does a DELETE request and retries a few times on error
+func (httpClient HttpClient) DeleteRequestTo(url string, allowCompleteFailure bool, silentErrors bool) error {
 	triesCount := 1
 
 	sleepOrExitOnError := func(err error) {
@@ -103,7 +173,7 @@ func (httpClient HttpClient) DeleteRequestTo(urlSuffix string, allowCompleteFail
 		}
 
 		resp, err := httpClient.realClient.Do(
-			httpClient.newDELETE(urlSuffix),
+			httpClient.newDELETE(url),
 		)
 
 		if err != nil {
@@ -136,6 +206,6 @@ func NewHttpClient(params NewHttpClientParams) HttpClient {
 	return HttpClient{
 		BaseUrl:             params.BaseUrl,
 		realClient:          &http.Client{},
-		injectAuthInRequest: params.InjectAuthInRequest,
+		InjectAuthInRequest: params.InjectAuthInRequest,
 	}
 }

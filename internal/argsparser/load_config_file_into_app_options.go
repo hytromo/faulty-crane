@@ -34,6 +34,18 @@ func replaceMissingAppOptionsFromConfig(appOptions *configuration.AppOptions, co
 		appOptions.ApplyPlanCommon.GoogleContainerRegistry.Token = configOptions.GCR.Token
 	}
 
+	if appOptions.ApplyPlanCommon.DockerhubContainerRegistry.Namespace == "" {
+		appOptions.ApplyPlanCommon.DockerhubContainerRegistry.Namespace = configOptions.Dockerhub.Namespace
+	}
+
+	if appOptions.ApplyPlanCommon.DockerhubContainerRegistry.Username == "" {
+		appOptions.ApplyPlanCommon.DockerhubContainerRegistry.Username = configOptions.Dockerhub.Username
+	}
+
+	if appOptions.ApplyPlanCommon.DockerhubContainerRegistry.Password == "" {
+		appOptions.ApplyPlanCommon.DockerhubContainerRegistry.Password = configOptions.Dockerhub.Password
+	}
+
 	if len(appOptions.ApplyPlanCommon.Keep.UsedIn.KubernetesClusters) == 0 {
 		appOptions.ApplyPlanCommon.Keep.UsedIn.KubernetesClusters = configOptions.Keep.UsedIn.KubernetesClusters
 	}

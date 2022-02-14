@@ -69,3 +69,15 @@ func ReadPlan(planPath string) []containerregistry.Repository {
 
 	return parsedRepos
 }
+
+func IsGCR(options *configuration.AppOptions) bool {
+	config := options.ApplyPlanCommon
+
+	return config.GoogleContainerRegistry != (configuration.GoogleContainerRegistry{})
+}
+
+func IsDockerhub(options *configuration.AppOptions) bool {
+	config := options.ApplyPlanCommon
+
+	return config.DockerhubContainerRegistry != (configuration.DockerhubContainerRegistry{})
+}

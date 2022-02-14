@@ -2,7 +2,6 @@ package containerregistry
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -22,7 +21,6 @@ func (gcrClient GCRClient) newDeleteHTTPRequest(urlSuffix string) *http.Request 
 }
 
 func (gcrClient GCRClient) newHTTPRequest(urlSuffix string) *http.Request {
-	fmt.Println("Getting", gcrClient.getBaseURL()+urlSuffix)
 	req, _ := http.NewRequest("GET", gcrClient.getBaseURL()+urlSuffix, nil)
 	req.SetBasicAuth("_token", gcrClient.AccessKey)
 	return req

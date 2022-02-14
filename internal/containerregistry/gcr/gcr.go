@@ -44,10 +44,14 @@ func (gcrClient *GoogleContainerRegistryClient) GetAllRepos() []string {
 	}
 
 	for {
-		bodyBytes := gcrClient.httpClient.GetRequestTo(catalogResp.Next)
+		bodyBytes, err := gcrClient.httpClient.GetRequestTo(catalogResp.Next)
+
+		if err != nil {
+			log.Fatalf("Error on api call: %v", err.Error())
+		}
 
 		catalogResp = cr.CatalogDTO{}
-		err := json.Unmarshal(bodyBytes, &catalogResp)
+		err = json.Unmarshal(bodyBytes, &catalogResp)
 
 		repositories = append(repositories, catalogResp.Repositories...)
 
@@ -80,10 +84,14 @@ func (gcrClient *GoogleContainerRegistryClient) ParseRepo(repositoryLink string)
 	}
 
 	for {
-		bodyBytes := gcrClient.httpClient.GetRequestTo(listTagsResp.Next)
+		bodyBytes, err := gcrClient.httpClient.GetRequestTo(listTagsResp.Next)
+
+		if err != nil {
+			log.Fatalf("Error on api call: %v", err.Error())
+		}
 
 		listTagsResp = cr.ListTagsDTO{}
-		err := json.Unmarshal(bodyBytes, &listTagsResp)
+		err = json.Unmarshal(bodyBytes, &listTagsResp)
 
 		for digest, image := range listTagsResp.Manifest {
 			image.Digest = digest
@@ -97,12 +105,6 @@ func (gcrClient *GoogleContainerRegistryClient) ParseRepo(repositoryLink string)
 
 		if listTagsResp.Next == "" { // no more pages to GET
 			break
-		} else { // more pages to GET
-			// remove the prefix of the link as our gcr client works with suffixes
-			listTagsResp.Next = stringutil.TrimLeftChars(listTagsResp.Next, len(gcrClient.httpClient.BaseUrl))
-			if listTagsResp.Next[0] != '/' {
-				listTagsResp.Next = "/" + listTagsResp.Next
-			}
 		}
 	}
 
