@@ -35,9 +35,14 @@ type Image struct {
 
 // KeepImages specifies what conditions we should use in order to keep images from being deleted
 type KeepImages struct {
+	// Keep images younger than e.g. 5d
 	YoungerThan string
-	UsedIn      UsedIn
-	Image       Image
+	// Keep at least N images
+	AtLeast int
+	// Keep the images used in the below contexts
+	UsedIn UsedIn
+	// Keep images with the below image-related characteristics
+	Image Image
 }
 
 // Configuration struct shows the structure of the configuration file used by this app

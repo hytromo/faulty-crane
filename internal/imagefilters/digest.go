@@ -17,18 +17,20 @@ func digestFilter(repos []containerregistry.Repository, digestsToKeep []string) 
 	}
 
 	for repoIndex := range repos {
-		for imageIndex := range repos[repoIndex].Images {
-			parsedImage := repos[repoIndex].Images[imageIndex]
+		for imageIndex, parsedImage := range repos[repoIndex].Images {
 			if parsedImage.KeptData.Reason != keepreasons.None {
 				// image already kept for some other reason
 				continue
 			}
 
-			_, exists := digestsToKeepMap[parsedImage.Digest]
-			if exists {
-				repos[repoIndex].Images[imageIndex].KeptData.Reason = keepreasons.WhitelistedDigest
-				break
+			for _, digest := range parsedImage.Digest {
+				_, exists := digestsToKeepMap[digest]
+				if exists {
+					repos[repoIndex].Images[imageIndex].KeptData.Reason = keepreasons.WhitelistedDigest
+					break
+				}
 			}
+
 		}
 	}
 }

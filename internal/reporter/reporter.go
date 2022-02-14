@@ -23,18 +23,18 @@ func ReportRepositoriesStatus(repos []containerregistry.Repository, showAnalytic
 		return repos[i].Link < repos[j].Link
 	})
 
-	table := tablewriter.NewWriter(os.Stdout)
-
 	keepCount := 0
 	deleteCount := 0
 	var deleteTotalSizeBytes int64 = 0
 	var keepTotalSizeBytes int64 = 0
 
 	if showAnalyticalPlan {
-		headers := []string{"Kept", "Repo", "Tags", "Digest", "Size", "Cluster", "Uploaded"}
+		headers := []string{"Kept", "Tags", "Digest", "Size", "Cluster", "Uploaded"}
 		headersCount := len(headers)
-		table.SetHeader(headers)
 		for _, parsedRepo := range repos {
+			fmt.Println(">", parsedRepo.Link)
+			table := tablewriter.NewWriter(os.Stdout)
+			table.SetHeader(headers)
 			for _, parsedImage := range parsedRepo.Images {
 				image := parsedImage
 				keptReason := parsedImage.KeptData.Reason
@@ -60,58 +60,60 @@ func ReportRepositoriesStatus(repos []containerregistry.Repository, showAnalytic
 					keepTotalSizeBytes = keepTotalSizeBytes + imageSizeBytes
 				}
 
-				tableValues[1] = stringutil.KeepAtMost(parsedRepo.Link, 80)
-				if keptReason == keepreasons.WhitelistedRepository {
+				tableValues[1] = stringutil.KeepAtMost(strings.Join(image.Tag, ","), 50)
+				if keptReason == keepreasons.WhitelistedTag {
 					tableColors[1] = tablewriter.Colors{tablewriter.FgGreenColor}
 				} else {
 					tableColors[1] = tablewriter.Colors{}
 				}
 
-				tableValues[2] = stringutil.KeepAtMost(strings.Join(image.Tag, ","), 50)
-				if keptReason == keepreasons.WhitelistedTag {
+				digestsClean := []string{}
+				for _, digest := range image.Digest {
+					digestClean := strings.Replace(digest, "sha256:", "", 1)
+					digestsClean = append(digestsClean, stringutil.TrimRightChars(digestClean, len(digestClean)-12))
+				}
+
+				tableValues[2] = strings.Join(digestsClean, ",")
+				if keptReason == keepreasons.WhitelistedDigest {
 					tableColors[2] = tablewriter.Colors{tablewriter.FgGreenColor}
 				} else {
 					tableColors[2] = tablewriter.Colors{}
 				}
 
-				digestClean := strings.Replace(image.Digest, "sha256:", "", 1)
-				tableValues[3] = stringutil.TrimRightChars(digestClean, len(digestClean)-12) // keep only the first few chars
-				if keptReason == keepreasons.WhitelistedDigest {
-					tableColors[3] = tablewriter.Colors{tablewriter.FgGreenColor}
-				} else {
-					tableColors[3] = tablewriter.Colors{}
-				}
+				tableColors[3] = tablewriter.Colors{}
 
-				tableColors[4] = tablewriter.Colors{}
-
-				tableValues[4] = stringutil.HumanFriendlySize(imageSizeBytes)
+				tableValues[3] = stringutil.HumanFriendlySize(imageSizeBytes)
 
 				uploadedMs, err := strconv.ParseInt(image.TimeUploadedMs, 10, 64)
 				if err != nil {
 					log.Fatalf("Invalid uploaded timestamp %v", image.TimeUploadedMs)
 				}
 
-				tableValues[5] = "-"
+				tableValues[4] = "-"
 				if keptReason == keepreasons.UsedInCluster {
-					tableValues[5] = parsedImage.KeptData.Metadata
+					tableValues[4] = parsedImage.KeptData.Metadata
+					tableColors[4] = tablewriter.Colors{tablewriter.FgGreenColor}
+				} else {
+					tableColors[4] = tablewriter.Colors{}
+				}
+
+				tableValues[5] = time.Unix(uploadedMs/1000, 0).Format(time.RFC822)
+				if keptReason == keepreasons.Young {
 					tableColors[5] = tablewriter.Colors{tablewriter.FgGreenColor}
 				} else {
 					tableColors[5] = tablewriter.Colors{}
 				}
 
-				tableValues[6] = time.Unix(uploadedMs/1000, 0).Format(time.RFC822)
-				if keptReason == keepreasons.Young {
-					tableColors[6] = tablewriter.Colors{tablewriter.FgGreenColor}
-				} else {
-					tableColors[6] = tablewriter.Colors{}
-				}
-
 				table.Rich(tableValues, tableColors)
 			}
+			table.Render()
+			fmt.Println()
 		}
 	} else {
 		headers := []string{"repo", "deleted", "deleted size", "most recent to be deleted"}
 		headersCount := len(headers)
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader(headers)
 		table.SetHeader(headers)
 		for _, parsedRepo := range repos {
 			tableValues := make([]string, headersCount)
@@ -180,9 +182,9 @@ func ReportRepositoriesStatus(repos []containerregistry.Repository, showAnalytic
 
 			table.Rich(tableValues, tableColors)
 		}
+		fmt.Println()
+		table.Render()
 	}
-
-	table.Render()
 
 	totalBytes := deleteTotalSizeBytes + keepTotalSizeBytes
 	totalImages := deleteCount + keepCount
@@ -205,4 +207,6 @@ func ReportRepositoriesStatus(repos []containerregistry.Repository, showAnalytic
 		"image(s) will be kept",
 		color.Green(fmt.Sprintf("/ %v", stringutil.HumanFriendlySize(keepTotalSizeBytes))),
 	)
+
+	fmt.Println()
 }

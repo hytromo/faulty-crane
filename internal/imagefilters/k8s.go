@@ -16,9 +16,7 @@ func k8sFilter(repos []containerregistry.Repository, clusters []configuration.Ku
 
 	for repoIndex := range repos {
 	imageLoop:
-		for imageIndex := range repos[repoIndex].Images {
-			parsedImage := repos[repoIndex].Images[imageIndex]
-
+		for imageIndex, parsedImage := range repos[repoIndex].Images {
 			if parsedImage.KeptData.Reason != keepreasons.None {
 				// image already kept for some other reason
 				continue
@@ -36,13 +34,16 @@ func k8sFilter(repos []containerregistry.Repository, clusters []configuration.Ku
 				}
 			}
 
-			fullNameWithDigest := parsedImage.Repo + "@" + parsedImage.Digest
-			cluster, exists := usedImages[fullNameWithDigest]
+			for _, digest := range parsedImage.Digest {
+				fullNameWithDigest := parsedImage.Repo + "@" + digest
+				cluster, exists := usedImages[fullNameWithDigest]
 
-			if exists {
-				// image used in a k8s cluster
-				repos[repoIndex].Images[imageIndex].KeptData.Reason = keepreasons.UsedInCluster
-				repos[repoIndex].Images[imageIndex].KeptData.Metadata = cluster.Context
+				if exists {
+					// image used in a k8s cluster
+					repos[repoIndex].Images[imageIndex].KeptData.Reason = keepreasons.UsedInCluster
+					repos[repoIndex].Images[imageIndex].KeptData.Metadata = cluster.Context
+					continue imageLoop
+				}
 			}
 		}
 	}

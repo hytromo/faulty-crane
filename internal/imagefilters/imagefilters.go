@@ -15,6 +15,7 @@ func Parse(repos []containerregistry.Repository, keepImages configuration.KeepIm
 	tagFilter(parsedRepos, keepImages.Image.Tags)
 	digestFilter(parsedRepos, keepImages.Image.Digests)
 	k8sFilter(parsedRepos, keepImages.UsedIn.KubernetesClusters)
+	numberFilter(parsedRepos, keepImages.AtLeast)
 
 	return parsedRepos
 }

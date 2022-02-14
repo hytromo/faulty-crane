@@ -16,6 +16,8 @@ const (
 	WhitelistedDigest
 	// WhitelistedRepository kept reason means that the image has a repository which is whitelisted and thus will not be deleted
 	WhitelistedRepository
+	// OneOfFew kept reason means that the repository needs to keep a minimum number of images, that's why the image was kept
+	OneOfFew
 )
 
 // KeptData contains all the data needed to figure out why an image was kept from being deleted

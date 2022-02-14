@@ -89,7 +89,6 @@ func registerStrParameter(cmd *flag.FlagSet, p *string, name string, envKey stri
 		*p = LookupEnvOrString(envKey, defaultValue)
 	}
 }
-
 func registerBoolParameter(cmd *flag.FlagSet, p *bool, name string, envKey string, defaultValue bool, usage string) {
 	defaultValueFriendly := "false"
 
@@ -114,6 +113,9 @@ func addApplyPlanCommonVars(cmd *flag.FlagSet, appOptions *configuration.AppOpti
 
 	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.Keep.YoungerThan, "keep-younger-than", ENV_PREFIX+"KEEP_YOUNGER_THAN", "", "images younger than this value will be kept; provide a duration value, e.g. '10d', '1w3d' or '1d3h'")
 
+	atLeastStr := ""
+	registerStrParameter(cmd, &atLeastStr, "keep-at-least", ENV_PREFIX+"KEEP_AT_LEAST", "", "at least that many images will be kept in this specific repo, prioritising the younger ones")
+
 	k8sClustersStr := ""
 	imageTags := ""
 	imageDigests := ""
@@ -128,6 +130,17 @@ func addApplyPlanCommonVars(cmd *flag.FlagSet, appOptions *configuration.AppOpti
 	registerStrParameter(cmd, &imageIDs, "keep-image-repos", ENV_PREFIX+"KEEP_IMAGE_REPOS", "", "comma-separated list of repos; images with in these repos will be kept")
 
 	safeParseArguments(cmd, args)
+
+	appOptions.ApplyPlanCommon.Keep.AtLeast = 0
+	if atLeastStr != "" {
+		atLeast, err := strconv.Atoi(atLeastStr)
+
+		if err != nil {
+			log.Fatalf("Could not convert keep-at-least value '%s' to integer", atLeastStr)
+		}
+
+		appOptions.ApplyPlanCommon.Keep.AtLeast = atLeast
+	}
 
 	if len(k8sClustersStr) > 0 {
 		k8sClustersArr := strings.Split(k8sClustersStr, ",")

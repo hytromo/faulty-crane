@@ -54,8 +54,15 @@ func (client *DockerhubRegistryClient) DeleteImage(imageRepo string, image cr.Co
 		}
 	}
 
-	// after all the image tags have been deleted, we can delete the image itself
-	return client.httpClient.DeleteRequestTo("/"+imageRepo+"/manifests/"+image.Digest, true, silentErrors)
+	for _, digest := range image.Digest {
+		// after all the image tags have been deleted, we can delete the image itself
+		err = client.httpClient.DeleteRequestTo("/"+imageRepo+"/manifests/"+digest, true, silentErrors)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (hubClient *DockerhubRegistryClient) GetAllRepos() []string {
@@ -123,26 +130,30 @@ func (hubClient *DockerhubRegistryClient) ParseRepo(repositoryLink string) cr.Re
 
 		timeLayout := "2006-01-02T15:04:05.999999Z"
 		for _, result := range listTagsResp.Results {
-			for _, image := range result.Images {
-				repoImage := cr.ContainerImage{}
-				repoImage.Digest = image.Digest
-				repoImage.ImageSizeBytes = strconv.FormatInt(image.Size, 10)
-				repoImage.Tag = []string{result.Name}
+			repoImage := cr.ContainerImage{}
+			repoImage.Digest = []string{}
+			repoImage.Tag = []string{result.Name}
+			var totalImageSize int64 = 0
+			t, err := time.Parse(timeLayout, result.TagLastPushed)
 
-				t, err := time.Parse(timeLayout, result.TagLastPushed)
-
-				if err == nil {
-					updatedMs := strconv.FormatInt(t.UTC().UnixMilli(), 10)
-					repoImage.TimeCreatedMs = updatedMs
-					repoImage.TimeUploadedMs = updatedMs
-				}
-
-				repoImage.LayerID = strconv.FormatInt(result.Id, 10)
-				repoImage.MediaType = "application/vnd.docker.distribution.manifest.v2+json"
-				repoImage.Repo = repositoryLink
-
-				repository.Images = append(repository.Images, repoImage)
+			if err == nil {
+				updatedMs := strconv.FormatInt(t.UTC().UnixMilli(), 10)
+				repoImage.TimeCreatedMs = updatedMs
+				repoImage.TimeUploadedMs = updatedMs
 			}
+
+			repoImage.LayerID = strconv.FormatInt(result.Id, 10)
+			repoImage.MediaType = "application/vnd.docker.distribution.manifest.v2+json"
+			repoImage.Repo = repositoryLink
+
+			for _, image := range result.Images {
+				totalImageSize += int64(image.Size)
+				repoImage.Digest = append(repoImage.Digest, image.Digest)
+			}
+
+			repoImage.ImageSizeBytes = strconv.FormatInt(totalImageSize, 10)
+
+			repository.Images = append(repository.Images, repoImage)
 		}
 
 		if err != nil {

@@ -63,7 +63,7 @@ func (gcrClient GCRClient) listTags(repositoryLink string) Repository {
 		err := json.Unmarshal(bodyBytes, &listTagsResp)
 
 		for digest, image := range listTagsResp.Manifest {
-			image.Digest = digest
+			image.Digest = []string{digest}
 			image.Repo = gcrClient.Host + "/" + repositoryLink
 			repository.Images = append(repository.Images, image)
 		}
@@ -100,6 +100,13 @@ func (gcrClient GCRClient) DeleteImage(imageRepo string, image ContainerImage, s
 		return false
 	}
 
-	// after all the image tags have been deleted, we can delete the image itself
-	return gcrClient.deleteRequestTo("/"+imageRepo+"/manifests/"+image.Digest, true, silentErrors)
+	for _, digest := range image.Digest {
+		// after all the image tags have been deleted, we can delete the image itself
+		res := gcrClient.deleteRequestTo("/"+imageRepo+"/manifests/"+digest, true, silentErrors)
+		if !res {
+			return res
+		}
+	}
+
+	return true
 }

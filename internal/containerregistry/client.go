@@ -17,7 +17,7 @@ type ContainerImage struct {
 	Tag            []string
 	TimeCreatedMs  string
 	TimeUploadedMs string
-	Digest         string
+	Digest         []string
 	Repo           string               // Repo is the name of the image's repository without the tag in the form e.g. eu.gcr.io/faulty-crane-project/faulty-crane-test
 	KeptData       keepreasons.KeptData `json:",omitempty"`
 }

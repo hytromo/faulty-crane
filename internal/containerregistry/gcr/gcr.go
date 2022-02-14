@@ -32,8 +32,15 @@ func (client *GoogleContainerRegistryClient) DeleteImage(imageRepo string, image
 		}
 	}
 
-	// after all the image tags have been deleted, we can delete the image itself
-	return client.httpClient.DeleteRequestTo("/"+imageRepo+"/manifests/"+image.Digest, true, silentErrors)
+	for _, digest := range image.Digest {
+		// after all the image tags have been deleted, we can delete the image itself
+		err = client.httpClient.DeleteRequestTo("/"+imageRepo+"/manifests/"+digest, true, silentErrors)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (gcrClient *GoogleContainerRegistryClient) GetAllRepos() []string {
@@ -94,7 +101,7 @@ func (gcrClient *GoogleContainerRegistryClient) ParseRepo(repositoryLink string)
 		err = json.Unmarshal(bodyBytes, &listTagsResp)
 
 		for digest, image := range listTagsResp.Manifest {
-			image.Digest = digest
+			image.Digest = []string{digest}
 			image.Repo = gcrClient.httpClient.BaseUrl + "/" + repositoryLink
 			repository.Images = append(repository.Images, image)
 		}
