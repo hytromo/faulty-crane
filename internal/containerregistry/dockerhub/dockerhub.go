@@ -48,15 +48,7 @@ func (client *DockerhubRegistryClient) DeleteImage(imageRepo string, image cr.Co
 	var err error
 
 	for _, tag := range image.Tag {
-		err = client.httpClient.DeleteRequestTo("/"+imageRepo+"/manifests/"+tag, true, silentErrors)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, digest := range image.Digest {
-		// after all the image tags have been deleted, we can delete the image itself
-		err = client.httpClient.DeleteRequestTo("/"+imageRepo+"/manifests/"+digest, true, silentErrors)
+		err = client.httpClient.DeleteRequestTo("/repositories/"+imageRepo+"/tags/"+tag+"/", true, silentErrors)
 		if err != nil {
 			return err
 		}
