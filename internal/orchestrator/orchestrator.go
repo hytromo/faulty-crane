@@ -15,12 +15,13 @@ import (
 
 // Orchestrator is the entry-point of the commands and handles high level things like implementing goroutines and showing terminal output
 type Orchestrator struct {
-	crClient cr.ContainerRegistryClient
+	crClient cr.Client
 	options  *configuration.AppOptions
 }
 
+// NewOrchestrator creates a new orchestrator instance
 func NewOrchestrator(options *configuration.AppOptions) Orchestrator {
-	var crClient cr.ContainerRegistryClient
+	var crClient cr.Client
 
 	if configurationhelper.IsGCR(options) {
 		crClient = gcr.NewGCRClient(gcr.NewGCRClientParams{
@@ -122,6 +123,7 @@ func (orchestrator *Orchestrator) deleteRepoImagesWorker(repos <-chan cr.Reposit
 	}
 }
 
+// DeleteImagesWithNoKeepReason deletes the images that do not have a keep reason
 func (orchestrator *Orchestrator) DeleteImagesWithNoKeepReason(repos []cr.Repository) cr.RepoDeletionResult {
 	allResults := cr.RepoDeletionResult{
 		ShouldDeleteCount:    0,
@@ -177,6 +179,7 @@ func (orchestrator Orchestrator) fetchRepoImagesWorker(repositoryLinks <-chan st
 	}
 }
 
+// GetAllRepos parses the repos of the repository
 func (orchestrator Orchestrator) GetAllRepos() []cr.Repository {
 	log.Info("Getting all the repos of the registry...")
 

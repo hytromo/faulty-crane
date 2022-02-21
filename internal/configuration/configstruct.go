@@ -13,7 +13,7 @@ type GoogleContainerRegistry struct {
 	Token string
 }
 
-// GoogleContainerRegistry keeps the needed data for the google container registry
+// DockerhubContainerRegistry keeps the needed data for the google container registry
 type DockerhubContainerRegistry struct {
 	Username string
 	Password string
@@ -62,6 +62,7 @@ type PlanSubcommandOptions struct {
 	SubcommandEnabled bool
 }
 
+// ApplyPlanCommonSubcommandOptions defines the common options between plan and apply subcommands
 type ApplyPlanCommonSubcommandOptions struct {
 	// Plan file to write, or to read from for deleting images
 	Plan string

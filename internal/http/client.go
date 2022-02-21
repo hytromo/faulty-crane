@@ -11,17 +11,18 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// InjectAuthInRequest is a function to inject authorisation information on every request
 type InjectAuthInRequest func(req *http.Request)
 
-// HttpClient is just a wrapper around the normal http client to provide some retry logic
-type HttpClient struct {
-	BaseUrl             string
+// Client is just a wrapper around the normal http client to provide some retry logic
+type Client struct {
+	BaseURL             string
 	realClient          *http.Client
 	InjectAuthInRequest InjectAuthInRequest
 }
 
-func (httpClient HttpClient) newPOST(url string, jsonPayload []byte) *http.Request {
-	req, _ := http.NewRequest("POST", httpClient.getFullUrlFor(url), bytes.NewBuffer(jsonPayload))
+func (httpClient Client) newPOST(url string, jsonPayload []byte) *http.Request {
+	req, _ := http.NewRequest("POST", httpClient.getFullURLFor(url), bytes.NewBuffer(jsonPayload))
 	req.Header.Set("Content-Type", "application/json")
 
 	if httpClient.InjectAuthInRequest != nil {
@@ -31,16 +32,16 @@ func (httpClient HttpClient) newPOST(url string, jsonPayload []byte) *http.Reque
 	return req
 }
 
-func (httpClient *HttpClient) getFullUrlFor(url string) string {
+func (httpClient *Client) getFullURLFor(url string) string {
 	if strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://") {
 		return url
 	}
 
-	return httpClient.BaseUrl + url
+	return httpClient.BaseURL + url
 }
 
-func (httpClient HttpClient) newGET(url string) *http.Request {
-	req, _ := http.NewRequest("GET", httpClient.getFullUrlFor(url), nil)
+func (httpClient Client) newGET(url string) *http.Request {
+	req, _ := http.NewRequest("GET", httpClient.getFullURLFor(url), nil)
 
 	if httpClient.InjectAuthInRequest != nil {
 		httpClient.InjectAuthInRequest(req)
@@ -49,8 +50,8 @@ func (httpClient HttpClient) newGET(url string) *http.Request {
 	return req
 }
 
-func (httpClient HttpClient) newDELETE(url string) *http.Request {
-	req, _ := http.NewRequest("DELETE", httpClient.getFullUrlFor(url), nil)
+func (httpClient Client) newDELETE(url string) *http.Request {
+	req, _ := http.NewRequest("DELETE", httpClient.getFullURLFor(url), nil)
 
 	if httpClient.InjectAuthInRequest != nil {
 		httpClient.InjectAuthInRequest(req)
@@ -60,7 +61,7 @@ func (httpClient HttpClient) newDELETE(url string) *http.Request {
 }
 
 // GetRequestTo does a GET request and retries a few times on error
-func (httpClient HttpClient) GetRequestTo(url string) ([]byte, error) {
+func (httpClient Client) GetRequestTo(url string) ([]byte, error) {
 	triesCount := 1
 
 	sleepOrExitOnError := func(err error) {
@@ -102,7 +103,7 @@ func (httpClient HttpClient) GetRequestTo(url string) ([]byte, error) {
 }
 
 // PostRequestTo does a POST request and retries a few times on error
-func (httpClient HttpClient) PostRequestTo(url string, jsonPayload []byte, allowCompleteFailure bool, silentErrors bool) ([]byte, error) {
+func (httpClient Client) PostRequestTo(url string, jsonPayload []byte, allowCompleteFailure bool, silentErrors bool) ([]byte, error) {
 	triesCount := 1
 
 	sleepOrExitOnError := func(err error) {
@@ -150,7 +151,7 @@ func (httpClient HttpClient) PostRequestTo(url string, jsonPayload []byte, allow
 }
 
 // DeleteRequestTo does a DELETE request and retries a few times on error
-func (httpClient HttpClient) DeleteRequestTo(url string, allowCompleteFailure bool, silentErrors bool) error {
+func (httpClient Client) DeleteRequestTo(url string, allowCompleteFailure bool, silentErrors bool) error {
 	triesCount := 1
 
 	sleepOrExitOnError := func(err error) {
@@ -197,14 +198,16 @@ func (httpClient HttpClient) DeleteRequestTo(url string, allowCompleteFailure bo
 	}
 }
 
-type NewHttpClientParams struct {
-	BaseUrl             string
+// NewClientParams is the parameters required to build a new client
+type NewClientParams struct {
+	BaseURL             string
 	InjectAuthInRequest InjectAuthInRequest
 }
 
-func NewHttpClient(params NewHttpClientParams) HttpClient {
-	return HttpClient{
-		BaseUrl:             params.BaseUrl,
+// NewClient is building a new client
+func NewClient(params NewClientParams) Client {
+	return Client{
+		BaseURL:             params.BaseURL,
 		realClient:          &http.Client{},
 		InjectAuthInRequest: params.InjectAuthInRequest,
 	}

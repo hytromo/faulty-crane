@@ -22,6 +22,7 @@ type ContainerImage struct {
 	KeptData       keepreasons.KeptData `json:",omitempty"`
 }
 
+// RepoDeletionResult is the repository deletion result
 type RepoDeletionResult struct {
 	ShouldDeleteCount    int
 	ManagedToDeleteCount int
@@ -43,8 +44,8 @@ type ListTagsDTO struct {
 	Next     string
 }
 
-// ContainerRegistryClient is used for implementing container registry clients
-type ContainerRegistryClient interface {
+// Client is used for implementing container registry clients
+type Client interface {
 	Login(username string, password string) error
 	DeleteImage(imageRepo string, image ContainerImage, silentErrors bool) error
 	GetAllRepos() []string

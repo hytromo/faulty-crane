@@ -25,10 +25,10 @@ jobs:
 
       - name: Build
         run: |
-          go build -o faulty-cranee cli/faulty-crane/*.go
+          go build cli/faulty-crane/*.go
 
       - name: Run vet, lint and tests
         run: |
           go vet ./...
-          golint .
-          go test -v
+          golint ./...
+          go test -v ./...

@@ -2,8 +2,9 @@ package dockerhub
 
 import myhttp "github.com/hytromo/faulty-crane/internal/http"
 
-type DockerhubRegistryClient struct {
-	httpClient myhttp.HttpClient
+// RegistryClient is a dockerhub registry client
+type RegistryClient struct {
+	httpClient myhttp.Client
 	token      string
 	namespace  string
 }
@@ -13,6 +14,7 @@ type UsersLoginDTO struct {
 	Token string
 }
 
+// RepositoryResultDTO is the DTO of the corresponding API call
 type RepositoryResultDTO struct {
 	User              string
 	Name              string
@@ -40,6 +42,7 @@ type RepositoryDTO struct {
 	Results  []RepositoryResultDTO
 }
 
+// TagResultImageDTO is the DTO of the corresponding API call
 type TagResultImageDTO struct {
 	Architecture string
 	Features     string
@@ -54,10 +57,11 @@ type TagResultImageDTO struct {
 	LastPushed   string
 }
 
+// TagResultDTO is the DTO of the corresponding API call
 type TagResultDTO struct {
 	Creator             int64
-	Id                  int64
-	ImageId             string
+	ID                  int64
+	ImageID             string
 	Images              []TagResultImageDTO
 	LastUpdated         string
 	LastUpdater         int64

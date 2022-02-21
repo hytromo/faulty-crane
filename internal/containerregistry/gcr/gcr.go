@@ -11,16 +11,19 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// GoogleContainerRegistryClient is a GCR client
 type GoogleContainerRegistryClient struct {
-	httpClient myhttp.HttpClient
+	httpClient myhttp.Client
 }
 
+// Login logins to GCR
 func (client *GoogleContainerRegistryClient) Login(username string, password string) error {
 	// GCR client does not need to login to get any kind of token, it just needs to specify the token in each request
 	// regardless, we need to specify this function to comply with the CRClient interface
 	return nil
 }
 
+// DeleteImage deletes an image from GCR
 func (client *GoogleContainerRegistryClient) DeleteImage(imageRepo string, image cr.ContainerImage, silentErrors bool) error {
 	// all the tags of the image need to be deleted first
 	var err error
@@ -43,7 +46,8 @@ func (client *GoogleContainerRegistryClient) DeleteImage(imageRepo string, image
 	return nil
 }
 
-func (gcrClient *GoogleContainerRegistryClient) GetAllRepos() []string {
+// GetAllRepos parses or repos of GCR
+func (client *GoogleContainerRegistryClient) GetAllRepos() []string {
 	repositories := []string{}
 
 	catalogResp := cr.CatalogDTO{
@@ -51,7 +55,7 @@ func (gcrClient *GoogleContainerRegistryClient) GetAllRepos() []string {
 	}
 
 	for {
-		bodyBytes, err := gcrClient.httpClient.GetRequestTo(catalogResp.Next)
+		bodyBytes, err := client.httpClient.GetRequestTo(catalogResp.Next)
 
 		if err != nil {
 			log.Fatalf("Error on api call: %v", err.Error())
@@ -70,7 +74,7 @@ func (gcrClient *GoogleContainerRegistryClient) GetAllRepos() []string {
 			break
 		} else { // more pages to GET
 			// remove the prefix of the link as our gcr client works with suffixes
-			catalogResp.Next = stringutil.TrimLeftChars(catalogResp.Next, len(gcrClient.httpClient.BaseUrl))
+			catalogResp.Next = stringutil.TrimLeftChars(catalogResp.Next, len(client.httpClient.BaseURL))
 			if catalogResp.Next[0] != '/' {
 				catalogResp.Next = "/" + catalogResp.Next
 			}
@@ -80,7 +84,8 @@ func (gcrClient *GoogleContainerRegistryClient) GetAllRepos() []string {
 	return repositories
 }
 
-func (gcrClient *GoogleContainerRegistryClient) ParseRepo(repositoryLink string) cr.Repository {
+// ParseRepo parses a specific repo
+func (client *GoogleContainerRegistryClient) ParseRepo(repositoryLink string) cr.Repository {
 	repository := cr.Repository{
 		Link:   repositoryLink,
 		Images: []cr.ContainerImage{},
@@ -91,7 +96,7 @@ func (gcrClient *GoogleContainerRegistryClient) ParseRepo(repositoryLink string)
 	}
 
 	for {
-		bodyBytes, err := gcrClient.httpClient.GetRequestTo(listTagsResp.Next)
+		bodyBytes, err := client.httpClient.GetRequestTo(listTagsResp.Next)
 
 		if err != nil {
 			log.Fatalf("Error on api call: %v", err.Error())
@@ -102,7 +107,7 @@ func (gcrClient *GoogleContainerRegistryClient) ParseRepo(repositoryLink string)
 
 		for digest, image := range listTagsResp.Manifest {
 			image.Digest = []string{digest}
-			image.Repo = gcrClient.httpClient.BaseUrl + "/" + repositoryLink
+			image.Repo = client.httpClient.BaseURL + "/" + repositoryLink
 			repository.Images = append(repository.Images, image)
 		}
 
@@ -118,6 +123,7 @@ func (gcrClient *GoogleContainerRegistryClient) ParseRepo(repositoryLink string)
 	return repository
 }
 
+// NewGCRClientParams are the required parameters to build a GCR client
 type NewGCRClientParams struct {
 	// one of gcr.io, us.gcr.io, eu.gcr.io, asia.gcr.io https://cloud.google.com/container-registry/docs/overview#registries
 	Hostname string
@@ -125,10 +131,11 @@ type NewGCRClientParams struct {
 	Token string
 }
 
-func NewGCRClient(params NewGCRClientParams) cr.ContainerRegistryClient {
+// NewGCRClient builds a new GCR client
+func NewGCRClient(params NewGCRClientParams) cr.Client {
 	return &GoogleContainerRegistryClient{
-		httpClient: myhttp.NewHttpClient(myhttp.NewHttpClientParams{
-			BaseUrl: fmt.Sprintf("https://%s/v2", params.Hostname),
+		httpClient: myhttp.NewClient(myhttp.NewClientParams{
+			BaseURL: fmt.Sprintf("https://%s/v2", params.Hostname),
 			InjectAuthInRequest: func(req *http.Request) {
 				req.SetBasicAuth("_token", params.Token)
 			},

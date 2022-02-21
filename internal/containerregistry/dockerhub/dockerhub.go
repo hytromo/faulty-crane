@@ -14,9 +14,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var BASE_URL = "https://hub.docker.com/v2"
+var baseURL = "https://hub.docker.com/v2"
 
-func (client *DockerhubRegistryClient) Login(username string, password string) error {
+// Login logs in into dockerhub
+func (client *RegistryClient) Login(username string, password string) error {
 	jsonPayload, _ := json.Marshal(map[string]interface{}{
 		"username": username,
 		"password": password,
@@ -43,7 +44,8 @@ func (client *DockerhubRegistryClient) Login(username string, password string) e
 	return err
 }
 
-func (client *DockerhubRegistryClient) DeleteImage(imageRepo string, image cr.ContainerImage, silentErrors bool) error {
+// DeleteImage delets an image from dockerhub
+func (client *RegistryClient) DeleteImage(imageRepo string, image cr.ContainerImage, silentErrors bool) error {
 	// all the tags of the image need to be deleted first
 	var err error
 
@@ -57,15 +59,16 @@ func (client *DockerhubRegistryClient) DeleteImage(imageRepo string, image cr.Co
 	return nil
 }
 
-func (hubClient *DockerhubRegistryClient) GetAllRepos() []string {
+// GetAllRepos parses all dockerhub repositories
+func (client *RegistryClient) GetAllRepos() []string {
 	repositories := []string{}
 
 	repositoryResp := RepositoryDTO{
-		Next: fmt.Sprintf("/repositories/%s?page_size=100", hubClient.namespace), // initial request
+		Next: fmt.Sprintf("/repositories/%s?page_size=100", client.namespace), // initial request
 	}
 
 	for {
-		bodyBytes, err := hubClient.httpClient.GetRequestTo(repositoryResp.Next)
+		bodyBytes, err := client.httpClient.GetRequestTo(repositoryResp.Next)
 
 		if err != nil {
 			log.Fatalf("Error on api call: %v", err.Error())
@@ -81,7 +84,7 @@ func (hubClient *DockerhubRegistryClient) GetAllRepos() []string {
 		err = json.Unmarshal(bodyBytes, &repositoryResp)
 
 		for _, result := range repositoryResp.Results {
-			repositories = append(repositories, fmt.Sprintf("%s/%s", hubClient.namespace, result.Name))
+			repositories = append(repositories, fmt.Sprintf("%s/%s", client.namespace, result.Name))
 		}
 
 		if err != nil {
@@ -96,7 +99,8 @@ func (hubClient *DockerhubRegistryClient) GetAllRepos() []string {
 	return repositories
 }
 
-func (hubClient *DockerhubRegistryClient) ParseRepo(repositoryLink string) cr.Repository {
+// ParseRepo parses a specific repository
+func (client *RegistryClient) ParseRepo(repositoryLink string) cr.Repository {
 	repository := cr.Repository{
 		Link:   repositoryLink,
 		Images: []cr.ContainerImage{},
@@ -107,7 +111,7 @@ func (hubClient *DockerhubRegistryClient) ParseRepo(repositoryLink string) cr.Re
 	}
 
 	for {
-		bodyBytes, err := hubClient.httpClient.GetRequestTo(listTagsResp.Next)
+		bodyBytes, err := client.httpClient.GetRequestTo(listTagsResp.Next)
 
 		if err != nil {
 			log.Fatalf("Error on api call: %v", err.Error())
@@ -134,7 +138,7 @@ func (hubClient *DockerhubRegistryClient) ParseRepo(repositoryLink string) cr.Re
 				repoImage.TimeUploadedMs = updatedMs
 			}
 
-			repoImage.LayerID = strconv.FormatInt(result.Id, 10)
+			repoImage.LayerID = strconv.FormatInt(result.ID, 10)
 			repoImage.MediaType = "application/vnd.docker.distribution.manifest.v2+json"
 			repoImage.Repo = repositoryLink
 
@@ -160,14 +164,16 @@ func (hubClient *DockerhubRegistryClient) ParseRepo(repositoryLink string) cr.Re
 	return repository
 }
 
+// NewHubClientParams is the required parameters to build a new client
 type NewHubClientParams struct {
 	Namespace string
 }
 
-func NewHubClient(params NewHubClientParams) cr.ContainerRegistryClient {
-	return &DockerhubRegistryClient{
-		httpClient: myhttp.NewHttpClient(myhttp.NewHttpClientParams{
-			BaseUrl:             BASE_URL,
+// NewHubClient builds a new client
+func NewHubClient(params NewHubClientParams) cr.Client {
+	return &RegistryClient{
+		httpClient: myhttp.NewClient(myhttp.NewClientParams{
+			BaseURL:             baseURL,
 			InjectAuthInRequest: nil, // we set this once we have logged in
 		}),
 		namespace: params.Namespace,

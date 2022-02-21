@@ -168,7 +168,7 @@ func ReportRepositoriesStatus(repos []containerregistry.Repository, showAnalytic
 				colorToPaint = tablewriter.Colors{tablewriter.FgGreenColor}
 			}
 
-			for i, _ := range tableColors {
+			for i := range tableColors {
 				tableColors[i] = colorToPaint
 			}
 
