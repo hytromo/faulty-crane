@@ -188,7 +188,6 @@ func Parse(args []string) (configuration.AppOptions, error) {
 	planSubCmd := "plan"
 	configureSubCmd := "configure"
 	showSubCmd := "show"
-	defaultSubCmd := planSubCmd
 
 	var appOptions configuration.AppOptions
 
@@ -233,11 +232,9 @@ func Parse(args []string) (configuration.AppOptions, error) {
 		},
 	}
 
-	chosenCommand := defaultSubCmd
+	chosenCommand := "non-existent-subcommand"
 
-	if len(args) < 2 {
-		log.Infof("No subcommand specified in arguments, assuming %v", LookupEnvOrString(ENV_PREFIX+"SUBCMD", defaultSubCmd))
-	} else {
+	if len(args) >= 2 {
 		chosenCommand = args[1]
 	}
 

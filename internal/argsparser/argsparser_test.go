@@ -9,8 +9,8 @@ func TestParse(t *testing.T) {
 		t.Error("Err should be nil")
 	}
 
-	if !cliOptions.Apply.SubcommandEnabled {
-		t.Error("The apply command should be enabled")
+	if !cliOptions.Plan.SubcommandEnabled {
+		t.Error("The plan command should be enabled")
 	}
 
 	if cliOptions.ApplyPlanCommon.Plan == "" {
@@ -40,7 +40,7 @@ func TestParse(t *testing.T) {
 		t.Error("Non-existent subcommand should return an error")
 	}
 
-	cliOptions, err = Parse([]string{"app", "configure", "-o", "file.json"})
+	cliOptions, err = Parse([]string{"app", "configure", "-out", "file.json"})
 
 	if err != nil {
 		t.Error("Err should be nil")

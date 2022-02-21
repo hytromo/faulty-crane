@@ -27,8 +27,8 @@ jobs:
         run: |
           go build -o faulty-cranee cli/faulty-crane/*.go
 
-      - name: Run vet, lint and tes
+      - name: Run vet, lint and tests
         run: |
-          go vet .
+          go vet ./...
           golint .
-          cd test && go test -v
+          go test -v

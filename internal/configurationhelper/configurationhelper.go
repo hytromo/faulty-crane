@@ -64,7 +64,7 @@ func ReadPlan(planPath string) []containerregistry.Repository {
 	err = json.Unmarshal([]byte(planBytes), &parsedRepos)
 
 	if err != nil {
-		log.Fatal("Cannot parse json of plan file %v: %v\n", planPath, err.Error())
+		log.Fatalf("Cannot parse json of plan file %v: %v\n", planPath, err.Error())
 	}
 
 	return parsedRepos
