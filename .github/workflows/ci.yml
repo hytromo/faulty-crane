@@ -1,0 +1,34 @@
+name: Main CI workflow
+
+on: push
+
+jobs:
+  ci:
+    timeout-minutes: 1
+    name: CI
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.17.6"
+
+      - name: Install dependencies
+        run: |
+          go version
+          go get -u golang.org/x/lint/golint
+
+      - name: Build
+        run: |
+          go build -o faulty-cranee cli/faulty-crane/*.go
+
+      - name: Run vet, lint and tes
+        run: |
+          go vet .
+          golint .
+          cd test && go test -v
