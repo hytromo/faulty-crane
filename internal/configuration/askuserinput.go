@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/hytromo/faulty-crane/internal/ask"
 	"github.com/hytromo/faulty-crane/internal/utils/stringutil"
@@ -9,7 +10,7 @@ import (
 	"maze.io/x/duration"
 )
 
-func askListOfStrings(question string) []string {
+func askListOfStrings(readDevice io.Reader, question string) []string {
 	emptyToFinishSuffix := "(empty=done)"
 
 	var answers = []string{}
@@ -17,6 +18,7 @@ func askListOfStrings(question string) []string {
 	for {
 		answer := ask.Str(ask.Question{
 			Description: fmt.Sprintf(question+" #%v %v", len(answers)+1, emptyToFinishSuffix),
+			ReadDevice:  readDevice,
 		})
 
 		if answer == "" {
@@ -31,43 +33,70 @@ func askListOfStrings(question string) []string {
 	return answers
 }
 
-var gcrRegistryHosts = []string{
-	"gcr.io", "eu.gcr.io", "us.gcr.io", "asia.gcr.io",
-}
-
 func isGCR(registryLink string) bool {
 	return registryLink == "gcr.io" || registryLink == "eu.gcr.io" || registryLink == "us.gcr.io" || registryLink == "asia.gcr.io"
 }
 
-func askContainerRegistryHost() string {
+func askContainerRegistryNamespace(readDevice io.Reader) string {
 	for {
-		registryLink := ask.Str(ask.Question{
-			Description:     fmt.Sprintf("Container %v for cleanup", color.Green("registry link")),
-			PossibleAnswers: gcrRegistryHosts,
+		namespace := ask.Str(ask.Question{
+			Description: fmt.Sprint("Namespace (e.g. organization name or your own username)"),
+			ReadDevice:  readDevice,
 		})
 
-		if !isGCR(registryLink) {
-			fmt.Println("Only Google Container Registry (GCR) is supported for now, please try again")
+		if namespace == "" {
+			fmt.Println("A namespace is required")
 		} else {
-			return registryLink
+			return namespace
 		}
 	}
 }
 
-func askContainerRegistryKey(containerRegistryLink string) string {
-	if isGCR(containerRegistryLink) {
-		return ask.Str(ask.Question{
-			Description: fmt.Sprintf("%v (gcloud auth print-access-token)", color.Green("Access token")),
+func askContainerRegistryUsername(readDevice io.Reader) string {
+	for {
+		username := ask.Str(ask.Question{
+			Description: fmt.Sprint("Username"),
+			ReadDevice:  readDevice,
 		})
-	}
 
-	return ""
+		if username == "" {
+			fmt.Println("A username is required")
+		} else {
+			return username
+		}
+	}
 }
 
-func askYoungerThan() string {
+func askContainerType(readDevice io.Reader) string {
+	return ask.Str(ask.Question{
+		Description:     fmt.Sprintf("Container %v", color.Green("registry type")),
+		PossibleAnswers: []string{"gcr", "dockerhub"},
+		ReadDevice:      readDevice,
+	})
+}
+
+func askContainerRegistryLink(readDevice io.Reader) string {
+	return ask.Str(ask.Question{
+		Description: fmt.Sprintf("Container %v for cleanup", color.Green("registry link")),
+		PossibleAnswers: []string{
+			"gcr.io", "eu.gcr.io", "us.gcr.io", "asia.gcr.io",
+		},
+		ReadDevice: readDevice,
+	})
+}
+
+func askContainerRegistryPassword(readDevice io.Reader, containerRegistryLink string) string {
+	return ask.Str(ask.Question{
+		Description: fmt.Sprintf("%v (e.g. `gcloud auth print-access-token` for gcr, password for dockerhub)", color.Green("Access token")),
+		ReadDevice:  readDevice,
+	})
+}
+
+func askYoungerThan(readDevice io.Reader) string {
 	for {
 		youngerThan := ask.Str(ask.Question{
 			Description: fmt.Sprintf("Keep images %v (e.g. 10d3h, empty=ignore age)", color.Green("younger than")),
+			ReadDevice:  readDevice,
 		})
 
 		if youngerThan == "" {
@@ -86,44 +115,59 @@ func askYoungerThan() string {
 	return ""
 }
 
-func askKubernetesClusters() []string {
-	return askListOfStrings(fmt.Sprintf("Keep images used in %v", color.Green("k8s cluster context")))
+func askKubernetesClusters(readDevice io.Reader) []string {
+	return askListOfStrings(readDevice, fmt.Sprintf("Keep images used in %v", color.Green("k8s cluster context")))
 }
 
-func askImageTags() []string {
-	return askListOfStrings(fmt.Sprintf("Keep images having %v", color.Green("tag")))
+func askImageTags(readDevice io.Reader) []string {
+	return askListOfStrings(readDevice, fmt.Sprintf("Keep images having %v", color.Green("tag")))
 }
 
-func askImageDigests() []string {
-	return askListOfStrings(fmt.Sprintf("Keep images having %v", color.Green("digest")))
+func askImageDigests(readDevice io.Reader) []string {
+	return askListOfStrings(readDevice, fmt.Sprintf("Keep images having %v", color.Green("digest")))
 }
 
-func askImageIds() []string {
-	return askListOfStrings(fmt.Sprintf("Keep images having %v", color.Green("id")))
+func askImageIds(readDevice io.Reader) []string {
+	return askListOfStrings(readDevice, fmt.Sprintf("Keep images having %v", color.Green("id")))
 }
 
 // UserInput is a struct holding the user's answers
 type UserInput struct {
-	containerRegistryLink   string
-	containerRegistryAccess string
-	youngerThan             string
-	kubernetesClusters      []string
-	imageTags               []string
-	imageDigests            []string
-	imageIDs                []string
+	ContainerRegistryLink      string
+	ContainerRegistryUsername  string
+	ContainerRegistryPassword  string
+	ContainerRegistryNamespace string
+	YoungerThan                string
+	KubernetesClusters         []string
+	ImageTags                  []string
+	ImageDigests               []string
+	ImageIDs                   []string
 }
 
 // AskUserInput asks for user input in order to create a new configuration
-func AskUserInput() UserInput {
-	containerRegistryLink := askContainerRegistryHost()
+func AskUserInput(readDevice io.Reader) UserInput {
+	containerType := askContainerType(readDevice)
+	containerRegistryLink := ""
+	containerRegistryUsername := ""
+	containerRegistryNamespace := ""
+
+	if containerType == "gcr" {
+		containerRegistryLink = askContainerRegistryLink(readDevice)
+	} else if containerType == "dockerhub" {
+		containerRegistryUsername = askContainerRegistryUsername(readDevice)
+		containerRegistryNamespace = askContainerRegistryNamespace(readDevice)
+
+	}
 
 	return UserInput{
-		containerRegistryLink:   containerRegistryLink,
-		containerRegistryAccess: askContainerRegistryKey(containerRegistryLink),
-		youngerThan:             askYoungerThan(),
-		kubernetesClusters:      askKubernetesClusters(),
-		imageTags:               askImageTags(),
-		imageDigests:            askImageDigests(),
-		imageIDs:                askImageIds(),
+		ContainerRegistryLink:      containerRegistryLink,
+		ContainerRegistryPassword:  askContainerRegistryPassword(readDevice, containerRegistryLink),
+		ContainerRegistryUsername:  containerRegistryUsername,
+		ContainerRegistryNamespace: containerRegistryNamespace,
+		YoungerThan:                askYoungerThan(readDevice),
+		KubernetesClusters:         askKubernetesClusters(readDevice),
+		ImageTags:                  askImageTags(readDevice),
+		ImageDigests:               askImageDigests(readDevice),
+		ImageIDs:                   askImageIds(readDevice),
 	}
 }

@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"encoding/json"
+	"io"
 
 	log "github.com/sirupsen/logrus"
 
@@ -12,21 +13,27 @@ import (
 func constructConfigurationFromAnswers(answers UserInput) Configuration {
 	config := Configuration{}
 	config.GCR = GoogleContainerRegistry{
-		Token: answers.containerRegistryAccess,
-		Host:  answers.containerRegistryLink,
+		Token: answers.ContainerRegistryPassword,
+		Host:  answers.ContainerRegistryLink,
 	}
 
-	config.Keep.YoungerThan = answers.youngerThan
+	config.Dockerhub = DockerhubContainerRegistry{
+		Username:  answers.ContainerRegistryUsername,
+		Password:  answers.ContainerRegistryPassword,
+		Namespace: answers.ContainerRegistryNamespace,
+	}
 
-	config.Keep.UsedIn.KubernetesClusters = make([]KubernetesCluster, len(answers.kubernetesClusters))
+	config.Keep.YoungerThan = answers.YoungerThan
 
-	for i, cluster := range answers.kubernetesClusters {
+	config.Keep.UsedIn.KubernetesClusters = make([]KubernetesCluster, len(answers.KubernetesClusters))
+
+	for i, cluster := range answers.KubernetesClusters {
 		config.Keep.UsedIn.KubernetesClusters[i].Context = cluster
 	}
 
-	config.Keep.Image.Tags = answers.imageTags
-	config.Keep.Image.Digests = answers.imageDigests
-	config.Keep.Image.Repositories = answers.imageIDs
+	config.Keep.Image.Tags = answers.ImageTags
+	config.Keep.Image.Digests = answers.ImageDigests
+	config.Keep.Image.Repositories = answers.ImageIDs
 
 	return config
 }
@@ -40,8 +47,8 @@ func saveConfig(path string, config Configuration) {
 }
 
 // CreateNew asks the user for configuration input and then creates a configuration file based on the answers
-func CreateNew(params ConfigureSubcommandOptions) {
-	answers := AskUserInput()
+func CreateNew(params ConfigureSubcommandOptions, reader io.Reader) {
+	answers := AskUserInput(reader)
 	config := constructConfigurationFromAnswers(answers)
 	saveConfig(params.Config, config)
 }

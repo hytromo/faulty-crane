@@ -14,16 +14,15 @@ type toWriteType struct {
 }
 
 func TestReadWrite(t *testing.T) {
-	file, err := ioutil.TempFile("", "unit_test")
-	file.Name()
+	tmpFile, err := ioutil.TempFile("", "unit_test")
 
 	if err != nil {
 		t.Error("Could not create temp file")
 	}
 
-	defer os.Remove(file.Name())
+	defer os.Remove(tmpFile.Name())
 
-	err = SaveJSON(file.Name(), toWriteType{
+	err = SaveJSON(tmpFile.Name(), toWriteType{
 		Name:     "alex",
 		Username: "hytromo",
 	}, true)
@@ -32,9 +31,9 @@ func TestReadWrite(t *testing.T) {
 		t.Error("Could not save JSON")
 	}
 
-	fileBytes, err := ReadFile(file.Name(), true)
+	fileBytes, err := ReadFile(tmpFile.Name(), true)
 	if err != nil {
-		t.Errorf("Could not read file '%v': %v\n", file.Name(), err.Error())
+		t.Errorf("Could not read file '%v': %v\n", tmpFile.Name(), err.Error())
 	}
 
 	parsedData := toWriteType{}
@@ -42,7 +41,7 @@ func TestReadWrite(t *testing.T) {
 	err = json.Unmarshal([]byte(fileBytes), &parsedData)
 
 	if err != nil {
-		log.Fatalf("Cannot parse json of plan file %v: %v\n", file.Name(), err.Error())
+		log.Fatalf("Cannot parse json of plan file %v: %v\n", tmpFile.Name(), err.Error())
 	}
 
 	if parsedData.Name != "alex" || parsedData.Username != "hytromo" {

@@ -24,8 +24,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
 	if appOptions.Configure.SubcommandEnabled {
-		configuration.CreateNew(appOptions.Configure)
+		configuration.CreateNew(appOptions.Configure, nil)
 		fmt.Printf("Configuration written in %v\n", color.Green(appOptions.Configure.Config))
 		return
 	}
@@ -68,7 +69,6 @@ func main() {
 			configStrInfo := ""
 			if options.Config != "" {
 				configStrInfo = fmt.Sprintf(" -config %v", options.Config)
-
 			}
 
 			log.Infof("Plan saved to %v", options.Plan)

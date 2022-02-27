@@ -42,6 +42,7 @@ func Str(question Question) string {
 
 	answer := ""
 	scanner := bufio.NewScanner(readDevice)
+	scanner.Split(bufio.ScanLines)
 
 	for {
 		fmt.Print(finalText)
