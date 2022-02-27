@@ -1,25 +1,24 @@
-package configurationhelper
+package configuration
 
 import (
 	"encoding/json"
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/hytromo/faulty-crane/internal/configuration"
 	"github.com/hytromo/faulty-crane/internal/containerregistry"
 	"github.com/hytromo/faulty-crane/internal/utils/fileutil"
 )
 
-func constructConfigurationFromAnswers(answers UserInput) configuration.Configuration {
-	config := configuration.Configuration{}
-	config.GCR = configuration.GoogleContainerRegistry{
+func constructConfigurationFromAnswers(answers UserInput) Configuration {
+	config := Configuration{}
+	config.GCR = GoogleContainerRegistry{
 		Token: answers.containerRegistryAccess,
 		Host:  answers.containerRegistryLink,
 	}
 
 	config.Keep.YoungerThan = answers.youngerThan
 
-	config.Keep.UsedIn.KubernetesClusters = make([]configuration.KubernetesCluster, len(answers.kubernetesClusters))
+	config.Keep.UsedIn.KubernetesClusters = make([]KubernetesCluster, len(answers.kubernetesClusters))
 
 	for i, cluster := range answers.kubernetesClusters {
 		config.Keep.UsedIn.KubernetesClusters[i].Context = cluster
@@ -32,7 +31,7 @@ func constructConfigurationFromAnswers(answers UserInput) configuration.Configur
 	return config
 }
 
-func saveConfig(path string, config configuration.Configuration) {
+func saveConfig(path string, config Configuration) {
 	err := fileutil.SaveJSON(path, config, false)
 
 	if err != nil {
@@ -41,7 +40,7 @@ func saveConfig(path string, config configuration.Configuration) {
 }
 
 // CreateNew asks the user for configuration input and then creates a configuration file based on the answers
-func CreateNew(params configuration.ConfigureSubcommandOptions) {
+func CreateNew(params ConfigureSubcommandOptions) {
 	answers := AskUserInput()
 	config := constructConfigurationFromAnswers(answers)
 	saveConfig(params.Config, config)
@@ -71,15 +70,15 @@ func ReadPlan(planPath string) []containerregistry.Repository {
 }
 
 // IsGCR returns if the configuration options point to GCR
-func IsGCR(options *configuration.AppOptions) bool {
+func IsGCR(options *AppOptions) bool {
 	config := options.ApplyPlanCommon
 
-	return config.GoogleContainerRegistry != (configuration.GoogleContainerRegistry{})
+	return config.GoogleContainerRegistry != (GoogleContainerRegistry{})
 }
 
 // IsDockerhub returns if the configuration options point to Dockerhub
-func IsDockerhub(options *configuration.AppOptions) bool {
+func IsDockerhub(options *AppOptions) bool {
 	config := options.ApplyPlanCommon
 
-	return config.DockerhubContainerRegistry != (configuration.DockerhubContainerRegistry{})
+	return config.DockerhubContainerRegistry != (DockerhubContainerRegistry{})
 }

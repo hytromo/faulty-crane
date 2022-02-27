@@ -1,4 +1,4 @@
-package configurationhelper
+package configuration
 
 import (
 	"fmt"

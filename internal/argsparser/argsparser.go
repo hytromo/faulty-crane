@@ -12,7 +12,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/hytromo/faulty-crane/internal/configuration"
-	"github.com/hytromo/faulty-crane/internal/configurationhelper"
 	"github.com/hytromo/faulty-crane/internal/optionsvalidator"
 )
 
@@ -186,9 +185,9 @@ func addApplyPlanCommonVars(cmd *flag.FlagSet, appOptions *configuration.AppOpti
 		replaceMissingAppOptionsFromConfig(appOptions, appOptions.ApplyPlanCommon.Config)
 	}
 
-	if configurationhelper.IsGCR(appOptions) {
+	if configuration.IsGCR(appOptions) {
 		appOptions.ApplyPlanCommon.GoogleContainerRegistry.Token = password
-	} else if configurationhelper.IsDockerhub(appOptions) {
+	} else if configuration.IsDockerhub(appOptions) {
 		appOptions.ApplyPlanCommon.DockerhubContainerRegistry.Password = password
 		appOptions.ApplyPlanCommon.DockerhubContainerRegistry.Username = username
 	}

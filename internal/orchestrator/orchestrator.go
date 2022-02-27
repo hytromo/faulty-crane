@@ -5,7 +5,6 @@ import (
 
 	"github.com/cheggaaa/pb/v3"
 	"github.com/hytromo/faulty-crane/internal/configuration"
-	"github.com/hytromo/faulty-crane/internal/configurationhelper"
 	cr "github.com/hytromo/faulty-crane/internal/containerregistry"
 	"github.com/hytromo/faulty-crane/internal/containerregistry/dockerhub"
 	"github.com/hytromo/faulty-crane/internal/containerregistry/gcr"
@@ -23,12 +22,12 @@ type Orchestrator struct {
 func NewOrchestrator(options *configuration.AppOptions) Orchestrator {
 	var crClient cr.Client
 
-	if configurationhelper.IsGCR(options) {
+	if configuration.IsGCR(options) {
 		crClient = gcr.NewGCRClient(gcr.NewGCRClientParams{
 			Hostname: options.ApplyPlanCommon.GoogleContainerRegistry.Host,
 			Token:    options.ApplyPlanCommon.GoogleContainerRegistry.Token,
 		})
-	} else if configurationhelper.IsDockerhub(options) {
+	} else if configuration.IsDockerhub(options) {
 		crClient = dockerhub.NewHubClient(dockerhub.NewHubClientParams{
 			Namespace: options.ApplyPlanCommon.DockerhubContainerRegistry.Namespace,
 		})
@@ -58,10 +57,10 @@ func (orchestrator *Orchestrator) Init() {
 	password := ""
 	config := orchestrator.options.ApplyPlanCommon
 
-	if configurationhelper.IsGCR(orchestrator.options) {
+	if configuration.IsGCR(orchestrator.options) {
 		log.Info("Configuring GCR...")
 		password = config.GoogleContainerRegistry.Token
-	} else if configurationhelper.IsDockerhub(orchestrator.options) {
+	} else if configuration.IsDockerhub(orchestrator.options) {
 		log.Info("Configuring Dockerhub...")
 		username = config.DockerhubContainerRegistry.Username
 		password = config.DockerhubContainerRegistry.Password

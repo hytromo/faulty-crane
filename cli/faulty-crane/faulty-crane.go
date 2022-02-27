@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/hytromo/faulty-crane/internal/argsparser"
-	"github.com/hytromo/faulty-crane/internal/configurationhelper"
+	"github.com/hytromo/faulty-crane/internal/configuration"
 	"github.com/hytromo/faulty-crane/internal/containerregistry"
 	"github.com/hytromo/faulty-crane/internal/imagefilters"
 	"github.com/hytromo/faulty-crane/internal/orchestrator"
@@ -25,13 +25,13 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	if appOptions.Configure.SubcommandEnabled {
-		configurationhelper.CreateNew(appOptions.Configure)
+		configuration.CreateNew(appOptions.Configure)
 		fmt.Printf("Configuration written in %v\n", color.Green(appOptions.Configure.Config))
 		return
 	}
 
 	if appOptions.Show.SubcommandEnabled {
-		parsedRepos := configurationhelper.ReadPlan(appOptions.Show.Plan)
+		parsedRepos := configuration.ReadPlan(appOptions.Show.Plan)
 		reporter.ReportRepositoriesStatus(parsedRepos, appOptions.Show.Analytical)
 	}
 
@@ -44,7 +44,7 @@ func main() {
 		if appOptions.Apply.SubcommandEnabled && options.Plan != "" {
 			// normal run, reading from an existent plan file the parsed repos
 			log.Infof("Reading from plan file %v\n", options.Plan)
-			parsedRepos = configurationhelper.ReadPlan(options.Plan)
+			parsedRepos = configuration.ReadPlan(options.Plan)
 		} else {
 			log.Infof("Reading repos from registry")
 			orchestrator := orchestrator.NewOrchestrator(&appOptions)
@@ -62,7 +62,7 @@ func main() {
 				return
 			}
 
-			configurationhelper.WritePlan(parsedRepos, options.Plan)
+			configuration.WritePlan(parsedRepos, options.Plan)
 
 			// if the user used a config to produce the dry run, they can use the same config to execute the plan, so here we prepare fully the command for them
 			configStrInfo := ""
