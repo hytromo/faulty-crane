@@ -1,0 +1,22 @@
+{
+	"Dockerhub": {
+		"Namespace": "namespace",
+		"Username": "overrideme"
+	},
+	"Keep": {
+		"UsedIn": {
+			"KubernetesClusters": [
+				{
+					"Context": "staging",
+					"Namespace": "",
+					"RunningInside": false
+				},
+				{
+					"Context": "production",
+					"Namespace": "",
+					"RunningInside": false
+				}
+			]
+		}
+	}
+}

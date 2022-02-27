@@ -12,10 +12,12 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/hytromo/faulty-crane/internal/configuration"
+	"github.com/hytromo/faulty-crane/internal/configurationhelper"
 	"github.com/hytromo/faulty-crane/internal/optionsvalidator"
 )
 
-const envPrefix = "FAULTY_CRANE_"
+// EnvPrefix is the common prefix of all the environment variables we respect
+const EnvPrefix = "FAULTY_CRANE_"
 
 func getWrongOptionsError(subCommandsMap map[string]func()) (err error) {
 	allSubcommands := make([]string, len(subCommandsMap))
@@ -105,29 +107,33 @@ func registerBoolParameter(cmd *flag.FlagSet, p *bool, name string, envKey strin
 
 func addApplyPlanCommonVars(cmd *flag.FlagSet, appOptions *configuration.AppOptions, args []string) {
 
-	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.Config, "config", envPrefix+"CONFIG", "", "path to the configuration file; can be created through 'faulty-crane configure'; other options can override the configuration")
+	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.Config, "config", EnvPrefix+"CONFIG", "", "path to the configuration file; can be created through 'faulty-crane configure'; other options can override the configuration")
 
-	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.GoogleContainerRegistry.Host, "registry", envPrefix+"CONTAINER_REGISTRY_HOST", "", "the registry to clean, e.g. eu.gcr.io")
-	// cmd.StringVar(&appOptions.ApplyPlanCommon.ContainerRegistry.Access, "key", LookupEnvOrString(ENV_PREFIX+"CONTAINER_REGISTRY_ACCESS", ""), "the path to the registry access key file, e.g. a file containing the output of 'gcloud auth print-access-token'")
-	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.GoogleContainerRegistry.Token, "key", envPrefix+"CONTAINER_REGISTRY_ACCESS", "", "the registry access key, e.g. the output of 'gcloud auth print-access-token', we highly recommend you use an env variable for this")
+	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.GoogleContainerRegistry.Host, "registry", EnvPrefix+"GOOGLE_CONTAINER_REGISTRY_HOST", "", "the registry to clean, e.g. eu.gcr.io")
 
-	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.Keep.YoungerThan, "keep-younger-than", envPrefix+"KEEP_YOUNGER_THAN", "", "images younger than this value will be kept; provide a duration value, e.g. '10d', '1w3d' or '1d3h'")
+	password := ""
+	registerStrParameter(cmd, &password, "password", EnvPrefix+"CONTAINER_REGISTRY_PASSWORD", "", "the registry password, access key etc. For GCR it's the output of 'gcloud auth print-access-token', we HIGHLY recommend you use an env variable for this")
+
+	username := ""
+	registerStrParameter(cmd, &username, "username", EnvPrefix+"CONTAINER_REGISTRY_USERNAME", "", "the registry username, not all registries require this, e.g. GCR does not")
+
+	registerStrParameter(cmd, &appOptions.ApplyPlanCommon.Keep.YoungerThan, "keep-younger-than", EnvPrefix+"KEEP_YOUNGER_THAN", "", "images younger than this value will be kept; provide a duration value, e.g. '10d', '1w3d' or '1d3h'")
 
 	atLeastStr := ""
-	registerStrParameter(cmd, &atLeastStr, "keep-at-least", envPrefix+"KEEP_AT_LEAST", "", "at least that many images will be kept in this specific repo, prioritising the younger ones")
+	registerStrParameter(cmd, &atLeastStr, "keep-at-least", EnvPrefix+"KEEP_AT_LEAST", "", "at least that many images will be kept in this specific repo, prioritising the younger ones")
 
 	k8sClustersStr := ""
 	imageTags := ""
 	imageDigests := ""
 	imageIDs := ""
 
-	registerStrParameter(cmd, &k8sClustersStr, "keep-used-in-k8s", envPrefix+"KEEP_USED_IN_K8S", "", "comma-separated list of k8s contexts; any image that is used by these clusters won't be deleted")
+	registerStrParameter(cmd, &k8sClustersStr, "keep-used-in-k8s", EnvPrefix+"KEEP_USED_IN_K8S", "", "comma-separated list of k8s contexts; any image that is used by these clusters won't be deleted")
 
-	registerStrParameter(cmd, &imageTags, "keep-image-tags", envPrefix+"KEEP_IMAGE_TAGS", "", "comma-separated list of tags; images with any of these tags will be kept")
+	registerStrParameter(cmd, &imageTags, "keep-image-tags", EnvPrefix+"KEEP_IMAGE_TAGS", "", "comma-separated list of tags; images with any of these tags will be kept")
 
-	registerStrParameter(cmd, &imageDigests, "keep-image-digests", envPrefix+"KEEP_IMAGE_DIGESTS", "", "comma-separated list of digests; images with these digests will be kept")
+	registerStrParameter(cmd, &imageDigests, "keep-image-digests", EnvPrefix+"KEEP_IMAGE_DIGESTS", "", "comma-separated list of digests; images with these digests will be kept")
 
-	registerStrParameter(cmd, &imageIDs, "keep-image-repos", envPrefix+"KEEP_IMAGE_REPOS", "", "comma-separated list of repos; images with in these repos will be kept")
+	registerStrParameter(cmd, &imageIDs, "keep-image-repos", EnvPrefix+"KEEP_IMAGE_REPOS", "", "comma-separated list of repos; images with in these repos will be kept")
 
 	safeParseArguments(cmd, args)
 
@@ -179,6 +185,13 @@ func addApplyPlanCommonVars(cmd *flag.FlagSet, appOptions *configuration.AppOpti
 	if appOptions.ApplyPlanCommon.Config != "" {
 		replaceMissingAppOptionsFromConfig(appOptions, appOptions.ApplyPlanCommon.Config)
 	}
+
+	if configurationhelper.IsGCR(appOptions) {
+		appOptions.ApplyPlanCommon.GoogleContainerRegistry.Token = password
+	} else if configurationhelper.IsDockerhub(appOptions) {
+		appOptions.ApplyPlanCommon.DockerhubContainerRegistry.Password = password
+		appOptions.ApplyPlanCommon.DockerhubContainerRegistry.Username = username
+	}
 }
 
 // Parse parses a list of strings as cli options and returns the final configuration.
@@ -197,7 +210,7 @@ func Parse(args []string) (configuration.AppOptions, error) {
 
 			planCmd := flag.NewFlagSet(planSubCmd, flag.ExitOnError)
 
-			registerStrParameter(planCmd, &appOptions.ApplyPlanCommon.Plan, "out", envPrefix+"PLAN", "", "a plan file to write")
+			registerStrParameter(planCmd, &appOptions.ApplyPlanCommon.Plan, "out", EnvPrefix+"PLAN", "", "a plan file to write")
 
 			addApplyPlanCommonVars(planCmd, &appOptions, args)
 		},
@@ -219,15 +232,15 @@ func Parse(args []string) (configuration.AppOptions, error) {
 			appOptions.Configure.SubcommandEnabled = true
 
 			configureCmd := flag.NewFlagSet(configureSubCmd, flag.ExitOnError)
-			registerStrParameter(configureCmd, &appOptions.Configure.Config, "out", envPrefix+"CONFIG", filepath.Base(os.Args[0])+".json", "the file to save the configuration to")
+			registerStrParameter(configureCmd, &appOptions.Configure.Config, "out", EnvPrefix+"CONFIG", filepath.Base(os.Args[0])+".json", "the file to save the configuration to")
 			safeParseArguments(configureCmd, args)
 		},
 		showSubCmd: func() {
 			appOptions.Show.SubcommandEnabled = true
 
 			showCmd := flag.NewFlagSet(showSubCmd, flag.ExitOnError)
-			registerStrParameter(showCmd, &appOptions.Show.Plan, "plan", envPrefix+"PLAN", "plan.out", "the plan file to show")
-			registerBoolParameter(showCmd, &appOptions.Show.Analytical, "analytical", envPrefix+"ANALYTICAL", false, "print the whole plan, not an aggregation")
+			registerStrParameter(showCmd, &appOptions.Show.Plan, "plan", EnvPrefix+"PLAN", "plan.out", "the plan file to show")
+			registerBoolParameter(showCmd, &appOptions.Show.Analytical, "analytical", EnvPrefix+"ANALYTICAL", false, "print the whole plan, not an aggregation")
 			safeParseArguments(showCmd, args)
 		},
 	}
