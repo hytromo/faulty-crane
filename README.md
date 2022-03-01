@@ -2,6 +2,7 @@
 
 ![ci](https://github.com/hytromo/faulty-crane/actions/workflows/ci.yml/badge.svg)
 [![codecov](https://codecov.io/gh/hytromo/faulty-crane/branch/master/graph/badge.svg?token=4IVE4DZIBZ)](https://codecov.io/gh/hytromo/faulty-crane)
+[![go report](https://goreportcard.com/badge/github.com/hytromo/faulty-crane)](https://goreportcard.com/report/github.com/hytromo/faulty-crane)
 
 # How do I run this?
 
