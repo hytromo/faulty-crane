@@ -77,3 +77,53 @@ func TestCreateNew(t *testing.T) {
 		Config:            tmpFile.Name(),
 	}, reader)
 }
+
+func TestPlanRW(t *testing.T) {
+	tmpFile, err := ioutil.TempFile("", "unit_test")
+
+	if err != nil {
+		t.Error("Could not create temp file")
+	}
+
+	defer os.Remove(tmpFile.Name())
+
+	plan := ReadPlan("../../test/repos.json", false)
+
+	if len(plan) <= 0 {
+		// just a failsafe to ensure we have read something
+		t.Error("Not enough repos in the plan to test")
+	}
+
+	WritePlan(plan, tmpFile.Name())
+	newPlan := ReadPlan(tmpFile.Name(), true)
+
+	if !reflect.DeepEqual(plan, newPlan) {
+		t.Error("Written plan does not equal initial plan")
+	}
+}
+
+func TestRegistryDetection(t *testing.T) {
+	if !IsGCR(&AppOptions{
+		ApplyPlanCommon: ApplyPlanCommonSubcommandOptions{
+			GoogleContainerRegistry: GoogleContainerRegistry{
+				Host:  "asia.gcr.io",
+				Token: "",
+			},
+		},
+	}) {
+
+		t.Error("Should be detected as GCR")
+	}
+
+	if !IsDockerhub(&AppOptions{
+		ApplyPlanCommon: ApplyPlanCommonSubcommandOptions{
+			DockerhubContainerRegistry: DockerhubContainerRegistry{
+				Username:  "test",
+				Namespace: "test",
+				Password:  "test",
+			},
+		},
+	}) {
+		t.Error("Should be detected as dockerhub")
+	}
+}

@@ -40,7 +40,7 @@
 		{
 			"label": "Go Coverage",
 			"type": "shell",
-			"command": "tmp=$(mktemp) && go test -coverprofile $tmp ./... && go tool cover -html=$tmp",
+			"command": "TMP=faulty-crane-coverage.out && go test -coverprofile $TMP ./... && go tool cover -html=$TMP -o ${TMP}.html",
 			"presentation": {
 				"echo": false,
 				"reveal": "never",

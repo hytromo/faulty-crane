@@ -1,0 +1,148 @@
+[
+	{
+		"Link": "hytromo/whitelistedRepo",
+		"Images": [
+			{
+				"ImageSizeBytes": "193819801",
+				"layerId": "190341682",
+				"MediaType": "application/vnd.docker.distribution.manifest.v2+json",
+				"Tag": [
+					"tag1"
+				],
+				"TimeCreatedMs": "1643813425846",
+				"TimeUploadedMs": "1643813425846",
+				"Digest": [
+					"sha256:18e175b263e7e1e79f09b52f3bb3e953abb5cc9bef22a9e528e6da57c4d12ce8",
+					"sha256:833db5bed7a528a0ef5f757cf3eaddeb879e7435da2cad15c14ac7c0ef7c288d"
+				],
+				"Repo": "hytromo/whitelistedRepo"
+			}
+		]
+	},
+	{
+		"Link": "hytromo/whitelistedDueToOnlyOne1",
+		"Images": [
+			{
+				"ImageSizeBytes": "113196056",
+				"layerId": "190338603",
+				"MediaType": "application/vnd.docker.distribution.manifest.v2+json",
+				"Tag": [
+					"tag1"
+				],
+				"TimeCreatedMs": "1643813341025",
+				"TimeUploadedMs": "1643813341025",
+				"Digest": [
+					"sha256:f8af447b828f1295254dc74594413750bc4e434088b3f52056c134ed0524f9f9",
+					"sha256:7460da52b8b6c3acaadac246201b1796b383273849416d4beb2e5608df25e1ac"
+				],
+				"Repo": "hytromo/img2"
+			}
+		]
+	},
+	{
+		"Link": "hytromo/img3",
+		"Images": [
+			{
+				"ImageSizeBytes": "6505070",
+				"layerId": "192363590",
+				"MediaType": "application/vnd.docker.distribution.manifest.v2+json",
+				"Tag": [
+					"tag2"
+				],
+				"TimeCreatedMs": "1644869042180",
+				"TimeUploadedMs": "1644869042180",
+				"Digest": [
+					"sha256:c22ad13a79929ac47c2c4cec81fc2bcafaa59c31b2bef9f16d865bea19144d36"
+				],
+				"Repo": "hytromo/img3"
+			},
+			{
+				"ImageSizeBytes": "6505070",
+				"layerId": "192349247",
+				"MediaType": "application/vnd.docker.distribution.manifest.v2+json",
+				"Tag": [
+					"tag3"
+				],
+				"TimeCreatedMs": "1644864794921",
+				"TimeUploadedMs": "1644864794921",
+				"Digest": [
+					"sha256:whitelistedDigestwhitelistedDigestwhitelistedDigestwhitelistedge"
+				],
+				"Repo": "hytromo/img3"
+			},
+			{
+				"ImageSizeBytes": "6505070",
+				"layerId": "192300423",
+				"MediaType": "application/vnd.docker.distribution.manifest.v2+json",
+				"Tag": [
+					"tag4"
+				],
+				"TimeCreatedMs": "1644851248917",
+				"TimeUploadedMs": "1644851248917",
+				"Digest": [
+					"sha256:c22ad13a79929ac47c2c4cec81fc2bcafaa59c31b2bef9f16d865bea19144d3e"
+				],
+				"Repo": "hytromo/img3"
+			}
+		]
+	},
+	{
+		"Link": "hytromo/img4",
+		"Images": [
+			{
+				"ImageSizeBytes": "53222424",
+				"layerId": "24349081",
+				"MediaType": "application/vnd.docker.distribution.manifest.v2+json",
+				"Tag": [
+					"tag5",
+					"whitelistedTag"
+				],
+				"TimeCreatedMs": "1521743923548",
+				"TimeUploadedMs": "1521743923548",
+				"Digest": [
+					"sha256:6918fdbce9bb073ba7a404a06e26a3740cfc553560c09c396eb21dee519bea58"
+				],
+				"Repo": "hytromo/img4"
+			}
+		]
+	},
+	{
+		"Link": "hytromo/whitelistedDueToTime",
+		"Images": [
+			{
+				"ImageSizeBytes": "53222424",
+				"layerId": "24349081",
+				"MediaType": "application/vnd.docker.distribution.manifest.v2+json",
+				"Tag": [
+					"tag6"
+				],
+				"TimeCreatedMs": "will_be_updated_on_test_runtime",
+				"TimeUploadedMs": "will_be_updated_on_test_runtime",
+				"Digest": [
+					"sha256:6918fdbce9bb073ba7a404a06e26a3740cfc553560c09c396eb21dee519bea5e"
+				],
+				"Repo": "hytromo/whitelistedDueToTime"
+			}
+		]
+	},
+	{
+		"Link": "hytromo/whitelistedDueToOnlyOne2",
+		"Images": [
+			{
+				"ImageSizeBytes": "193819801",
+				"layerId": "190341682",
+				"MediaType": "application/vnd.docker.distribution.manifest.v2+json",
+				"Tag": [
+					"tag1"
+				],
+				"TimeCreatedMs": "1643813425846",
+				"TimeUploadedMs": "1643813425846",
+				"Digest": [
+					"sha256:18e175b263e7e1e79f09b52f3bb3e953abb5cc9bef22a9e528e6da57c4d12cee",
+					"sha256:833db5bed7a528a0ef5f757cf3eaddeb879e7435da2cad15c14ac7c0ef7c288e"
+				],
+				"Repo": "hytromo/whitelistedDueToOnlyOne"
+			}
+		]
+	}
+]

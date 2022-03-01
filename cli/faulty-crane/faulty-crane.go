@@ -32,7 +32,7 @@ func main() {
 	}
 
 	if appOptions.Show.SubcommandEnabled {
-		parsedRepos := configuration.ReadPlan(appOptions.Show.Plan)
+		parsedRepos := configuration.ReadPlan(appOptions.Show.Plan, true)
 		reporter.ReportRepositoriesStatus(parsedRepos, appOptions.Show.Analytical)
 	}
 
@@ -45,7 +45,7 @@ func main() {
 		if appOptions.Apply.SubcommandEnabled && options.Plan != "" {
 			// normal run, reading from an existent plan file the parsed repos
 			log.Infof("Reading from plan file %v\n", options.Plan)
-			parsedRepos = configuration.ReadPlan(options.Plan)
+			parsedRepos = configuration.ReadPlan(options.Plan, true)
 		} else {
 			log.Infof("Reading repos from registry")
 			orchestrator := orchestrator.NewOrchestrator(&appOptions)

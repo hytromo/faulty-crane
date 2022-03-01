@@ -59,8 +59,8 @@ func WritePlan(parsedRepos []containerregistry.Repository, planPath string) {
 }
 
 // ReadPlan reads a plan file and returns the parsed repositories
-func ReadPlan(planPath string) []containerregistry.Repository {
-	planBytes, err := fileutil.ReadFile(planPath, true)
+func ReadPlan(planPath string, uncompressData bool) []containerregistry.Repository {
+	planBytes, err := fileutil.ReadFile(planPath, uncompressData)
 	if err != nil {
 		log.Fatalf("Could not read plan file '%v': %v\n", planPath, err.Error())
 	}
