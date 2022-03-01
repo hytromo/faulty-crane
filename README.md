@@ -1,3 +1,7 @@
+#
+
+![My workflow](https://github.com/hytromo/faulty-crane/actions/workflows/ci/badge.svg)
+
 # How do I run this?
 
 Add the GOPATH's bin to PATH so you are able to execute things directly through there
