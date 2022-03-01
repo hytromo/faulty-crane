@@ -251,6 +251,10 @@ func TestShow(t *testing.T) {
 		"-plan", "plan.out",
 	})
 
+	if err != nil {
+		t.Error("Error should be nil")
+	}
+
 	if !cliOptions.Show.Analytical {
 		t.Error("Analytical should be true")
 	}
