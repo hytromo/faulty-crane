@@ -1,7 +1,7 @@
 # Faulty crane
 
 ![ci](https://github.com/hytromo/faulty-crane/actions/workflows/ci.yml/badge.svg)
-![codecov](https://codecov.io/gh/hytromo/faulty-crane/branch/master/graph/badge.svg?token=4IVE4DZIBZ)](https://codecov.io/gh/hytromo/faulty-crane)
+[![codecov](https://codecov.io/gh/hytromo/faulty-crane/branch/master/graph/badge.svg?token=4IVE4DZIBZ)](https://codecov.io/gh/hytromo/faulty-crane)
 
 # How do I run this?
 
