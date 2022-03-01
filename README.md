@@ -1,6 +1,6 @@
 #
 
-![My workflow](https://github.com/hytromo/faulty-crane/actions/workflows/ci/badge.svg)
+![ci](https://github.com/hytromo/faulty-crane/actions/workflows/ci.yml/badge.svg)
 
 # How do I run this?
 

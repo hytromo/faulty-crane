@@ -1,4 +1,4 @@
-name: Main CI workflow
+name: build
 
 on: push
 
