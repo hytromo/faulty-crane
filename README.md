@@ -1,4 +1,4 @@
-#
+# Faulty crane
 
 ![ci](https://github.com/hytromo/faulty-crane/actions/workflows/ci.yml/badge.svg)
 

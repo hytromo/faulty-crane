@@ -1,4 +1,4 @@
-name: build
+name: Build Workflow
 
 on: push
 
@@ -31,4 +31,9 @@ jobs:
         run: |
           go vet ./...
           golint ./...
-          go test -v ./...
+          go test -v -race -covermode=atomic -coverprofile=coverage.out ./...
+
+      - uses: codecov/codecov-action@v2
+        with:
+          files: ./coverage.out
+          flags: unittests # optional
