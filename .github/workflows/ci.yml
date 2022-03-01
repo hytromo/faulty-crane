@@ -34,6 +34,7 @@ jobs:
           go test -v -race -covermode=atomic -coverprofile=coverage.out ./...
 
       - uses: codecov/codecov-action@v2
+        name: Upload to Codecov
         with:
           files: ./coverage.out
           flags: unittests # optional
