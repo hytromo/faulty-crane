@@ -1,6 +1,8 @@
 faulty-crane-default-config.json
 faulty-crane.json
 faulty-crane-default-plan.plan
-plan.out
 tmp/**/*
 cover.*
+*.plan
+*.out
+dist/*

@@ -107,7 +107,7 @@ func (orchestrator Orchestrator) deleteRepoImages(repo cr.Repository, pb *pb.Pro
 
 			pb.Increment()
 
-			if managedToDeleteImage != nil {
+			if managedToDeleteImage == nil {
 				result.ManagedToDeleteCount++
 			}
 		}

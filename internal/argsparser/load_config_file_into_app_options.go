@@ -54,6 +54,10 @@ func replaceMissingAppOptionsFromConfig(appOptions *configuration.AppOptions, co
 		appOptions.ApplyPlanCommon.Keep.YoungerThan = configOptions.Keep.YoungerThan
 	}
 
+	if appOptions.ApplyPlanCommon.Keep.AtLeast == 0 {
+		appOptions.ApplyPlanCommon.Keep.AtLeast = configOptions.Keep.AtLeast
+	}
+
 	if len(appOptions.ApplyPlanCommon.Keep.Image.Digests) == 0 {
 		appOptions.ApplyPlanCommon.Keep.Image.Digests = configOptions.Keep.Image.Digests
 	}

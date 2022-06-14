@@ -19,7 +19,6 @@ func numberFilter(repos []containerregistry.Repository, _keepAtLeast int) {
 		for _, parsedImage := range repo.Images {
 			if parsedImage.KeptData.Reason != keepreasons.None {
 				// image already kept for some other reason
-				keptInRepoNumber++
 				continue
 			}
 		}

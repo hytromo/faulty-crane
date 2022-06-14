@@ -47,7 +47,6 @@ func main() {
 			log.Infof("Reading from plan file %v\n", options.Plan)
 			parsedRepos = configuration.ReadPlan(options.Plan, true)
 		} else {
-			log.Infof("Reading repos from registry")
 			orchestrator := orchestrator.NewOrchestrator(&appOptions)
 			orchestrator.Init()
 			parsedRepos = imagefilters.Parse(
@@ -78,8 +77,8 @@ func main() {
 			)
 
 			fmt.Printf(
-				"    %v apply -plan %v%v",
-				filepath.Base(os.Args[0]), options.Plan, configStrInfo,
+				"    %v apply%v %v",
+				filepath.Base(os.Args[0]), configStrInfo, options.Plan,
 			)
 
 			fmt.Printf(

@@ -212,7 +212,6 @@ func Parse(args []string) (configuration.AppOptions, error) {
 			if applyCmd.NArg() != 0 {
 				// has plan nfile
 				appOptions.ApplyPlanCommon.Plan = applyCmd.Args()[0]
-				log.Info("Got plan file ", appOptions.ApplyPlanCommon.Plan)
 			}
 
 		},
