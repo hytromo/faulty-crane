@@ -8,17 +8,14 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
-  init:
-    name: Init
-    uses: hytromo/faulty-crane/.github/workflows/_init.yml@master
-  unit_test:
-    needs: [init]
-    name: Unit test
-    uses: hytromo/faulty-crane/.github/workflows/_unit_test.yml@master
   release:
     needs: [unit_test]
     runs-on: ubuntu-20.04
     steps:
+      - name: init
+        uses: ./.github/actions/init
+      - name: install deps
+        uses: ./.github/actions/unit_test
       - name: Release
         uses: goreleaser/goreleaser-action@v1
         with:
