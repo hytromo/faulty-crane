@@ -9,6 +9,10 @@ jobs:
   release:
     runs-on: ubuntu-20.04
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
       - name: init
         uses: ./.github/actions/init
       - name: install deps
