@@ -14,6 +14,6 @@ jobs:
         with:
           fetch-depth: 1
       - name: init
-        uses: ./.github/actions/init
+        uses: .github/actions/init
       - name: install deps
-        uses: ./.github/actions/unit_test
+        uses: .github/actions/unit_test
