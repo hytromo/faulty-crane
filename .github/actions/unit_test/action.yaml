@@ -4,6 +4,7 @@ runs:
   using: "composite"
   steps:
     - name: Run vet, lint and tests
+      shell: bash
       run: |
         go vet ./...
         golint ./...
