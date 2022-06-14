@@ -12,9 +12,11 @@ jobs:
     name: Init
     uses: hytromo/faulty-crane/.github/workflows/_init.yml@master
   unit_test:
+    needs: [init]
     name: Unit test
     uses: hytromo/faulty-crane/.github/workflows/_unit_test.yml@master
   release:
+    needs: [unit_test]
     runs-on: ubuntu-20.04
     steps:
       - name: Release
