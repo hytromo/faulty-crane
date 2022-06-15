@@ -33,14 +33,10 @@ func askListOfStrings(readDevice io.Reader, question string) []string {
 	return answers
 }
 
-func isGCR(registryLink string) bool {
-	return registryLink == "gcr.io" || registryLink == "eu.gcr.io" || registryLink == "us.gcr.io" || registryLink == "asia.gcr.io"
-}
-
 func askContainerRegistryNamespace(readDevice io.Reader) string {
 	for {
 		namespace := ask.Str(ask.Question{
-			Description: fmt.Sprint("Namespace (e.g. organization name or your own username)"),
+			Description: "Namespace (e.g. organization name or your own username)",
 			ReadDevice:  readDevice,
 		})
 
@@ -55,7 +51,7 @@ func askContainerRegistryNamespace(readDevice io.Reader) string {
 func askContainerRegistryUsername(readDevice io.Reader) string {
 	for {
 		username := ask.Str(ask.Question{
-			Description: fmt.Sprint("Username"),
+			Description: "Username",
 			ReadDevice:  readDevice,
 		})
 

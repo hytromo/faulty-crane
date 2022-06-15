@@ -56,11 +56,16 @@ func lookupEnvOrBool(key string, defaultVal bool) bool {
 
 // it parses the arguments even when there are not enough of them
 func safeParseArguments(flagset *flag.FlagSet, args []string) {
+	var err error
 	if len(args) > 2 {
-		flagset.Parse(args[2:])
+		err = flagset.Parse(args[2:])
 	} else {
-		flagset.Parse([]string{})
+		err = flagset.Parse([]string{})
 	}
+	if err != nil {
+		log.Fatal("Could not safely parse arguments")
+	}
+
 }
 
 /*
@@ -149,25 +154,19 @@ func addApplyPlanCommonVars(cmd *flag.FlagSet, appOptions *configuration.AppOpti
 	if len(imageTags) > 0 {
 		imageTagsArr := strings.Split(imageTags, ",")
 		appOptions.ApplyPlanCommon.Keep.Image.Tags = make([]string, len(imageTagsArr))
-		for i, imageTag := range imageTagsArr {
-			appOptions.ApplyPlanCommon.Keep.Image.Tags[i] = imageTag
-		}
+		copy(appOptions.ApplyPlanCommon.Keep.Image.Tags, imageTagsArr)
 	}
 
 	if len(imageDigests) > 0 {
 		imageDigestsArr := strings.Split(imageDigests, ",")
 		appOptions.ApplyPlanCommon.Keep.Image.Digests = make([]string, len(imageDigestsArr))
-		for i, imageTag := range imageDigestsArr {
-			appOptions.ApplyPlanCommon.Keep.Image.Digests[i] = imageTag
-		}
+		copy(appOptions.ApplyPlanCommon.Keep.Image.Digests, imageDigestsArr)
 	}
 
 	if len(imageIDs) > 0 {
 		imageIDsArr := strings.Split(imageIDs, ",")
 		appOptions.ApplyPlanCommon.Keep.Image.Repositories = make([]string, len(imageIDsArr))
-		for i, imageTag := range imageIDsArr {
-			appOptions.ApplyPlanCommon.Keep.Image.Repositories[i] = imageTag
-		}
+		copy(appOptions.ApplyPlanCommon.Keep.Image.Repositories, imageIDsArr)
 	}
 
 	if appOptions.ApplyPlanCommon.Config != "" {

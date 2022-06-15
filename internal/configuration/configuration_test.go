@@ -3,6 +3,7 @@ package configuration
 import (
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"reflect"
 	"testing"
@@ -13,7 +14,10 @@ func writeDockerhubAnswers(writer *io.PipeWriter) {
 	defer writer.Close()
 	answers := []string{"dockerhub", "hytromo", "namespace", "1234", "10d", "k1", "k2", "", "t1", "t2", "", "d1", "d2", "", "i1", "i2", ""}
 	for _, answer := range answers {
-		io.WriteString(writer, answer+"\r\n")
+		_, err := io.WriteString(writer, answer+"\r\n")
+		if err != nil {
+			log.Fatal("Could not write dockerhub answers")
+		}
 		time.Sleep(time.Duration(time.Microsecond * 100))
 	}
 }

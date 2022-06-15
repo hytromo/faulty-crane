@@ -2,7 +2,6 @@ package imagefilters
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -19,7 +18,7 @@ func TestParse(t *testing.T) {
 	configBytes, err := ioutil.ReadFile(testReposPath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Could not read configuration file %v: %v\n", testReposPath, err))
+		log.Fatalf("Could not read configuration file %v: %v\n", testReposPath, err)
 	}
 
 	repos := []containerregistry.Repository{}
@@ -27,7 +26,7 @@ func TestParse(t *testing.T) {
 	err = json.Unmarshal([]byte(configBytes), &repos)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Invalid format of configuration file %v: %v\n", testReposPath, err))
+		log.Fatalf("Invalid format of configuration file %v: %v\n", testReposPath, err)
 	}
 
 	// mutate a repo to whitelist it because it is young
@@ -117,7 +116,7 @@ func TestParse2(t *testing.T) {
 	configBytes, err := ioutil.ReadFile(testReposPath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Could not read configuration file %v: %v\n", testReposPath, err))
+		log.Fatalf("Could not read configuration file %v: %v\n", testReposPath, err)
 	}
 
 	repos := []containerregistry.Repository{}
@@ -125,7 +124,7 @@ func TestParse2(t *testing.T) {
 	err = json.Unmarshal([]byte(configBytes), &repos)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Invalid format of configuration file %v: %v\n", testReposPath, err))
+		log.Fatalf("Invalid format of configuration file %v: %v\n", testReposPath, err)
 	}
 
 	// mutate a repo to whitelist it because it is young
@@ -214,7 +213,7 @@ func TestParse3(t *testing.T) {
 	configBytes, err := ioutil.ReadFile(testReposPath)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Could not read configuration file %v: %v\n", testReposPath, err))
+		log.Fatalf("Could not read configuration file %v: %v\n", testReposPath, err)
 	}
 
 	repos := []containerregistry.Repository{}
@@ -222,7 +221,7 @@ func TestParse3(t *testing.T) {
 	err = json.Unmarshal([]byte(configBytes), &repos)
 
 	if err != nil {
-		log.Fatal(fmt.Sprintf("Invalid format of configuration file %v: %v\n", testReposPath, err))
+		log.Fatalf("Invalid format of configuration file %v: %v\n", testReposPath, err)
 	}
 
 	// mutate a repo to whitelist it because it is young

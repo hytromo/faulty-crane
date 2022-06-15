@@ -68,7 +68,10 @@ func (orchestrator *Orchestrator) Init() {
 		log.Fatal("Please configure a registry to fetch from")
 	}
 
-	orchestrator.crClient.Login(username, password)
+	err := orchestrator.crClient.Login(username, password)
+	if err != nil {
+		log.Fatal("Could not login")
+	}
 }
 
 func (orchestrator *Orchestrator) deleteImageFromChan(repoLink string, imagesToDeleteChan chan cr.ContainerImage, imagesDeletedChan chan error) {

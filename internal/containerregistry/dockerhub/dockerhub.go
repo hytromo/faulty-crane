@@ -76,19 +76,23 @@ func (client *RegistryClient) GetAllRepos() []string {
 
 		repositoryResp = RepositoryDTO{}
 
-		json.Unmarshal(
+		err = json.Unmarshal(
 			[]byte(bodyBytes),
 			conjson.NewUnmarshaler(&repositoryResp, transform.ConventionalKeys()),
 		)
 
-		err = json.Unmarshal(bodyBytes, &repositoryResp)
-
-		for _, result := range repositoryResp.Results {
-			repositories = append(repositories, fmt.Sprintf("%s/%s", client.namespace, result.Name))
+		if err != nil {
+			log.Fatalf("Invalid api call response (%v): %v", string(bodyBytes), err.Error())
 		}
+
+		err = json.Unmarshal(bodyBytes, &repositoryResp)
 
 		if err != nil {
 			log.Fatalf("Invalid api call response (%v): %v", string(bodyBytes), err.Error())
+		}
+
+		for _, result := range repositoryResp.Results {
+			repositories = append(repositories, fmt.Sprintf("%s/%s", client.namespace, result.Name))
 		}
 
 		if repositoryResp.Next == "" { // no more pages to GET
@@ -119,10 +123,14 @@ func (client *RegistryClient) ParseRepo(repositoryLink string) cr.Repository {
 
 		listTagsResp = TagsDTO{}
 
-		json.Unmarshal(
+		err = json.Unmarshal(
 			[]byte(bodyBytes),
 			conjson.NewUnmarshaler(&listTagsResp, transform.ConventionalKeys()),
 		)
+
+		if err != nil {
+			log.Fatalf("Error on api call: %v", err.Error())
+		}
 
 		timeLayout := "2006-01-02T15:04:05.999999Z"
 		for _, result := range listTagsResp.Results {
