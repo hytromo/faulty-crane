@@ -100,7 +100,6 @@ func TestParse(t *testing.T) {
 			if image.KeptData.Reason == keepreasons.None {
 				deletedCount++
 			}
-
 		}
 	}
 

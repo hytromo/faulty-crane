@@ -9,15 +9,15 @@ jobs:
   release:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout repo
+      - name: checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 1
       - name: init
         uses: ./.github/actions/init
-      - name: install deps
+      - name: unit test
         uses: ./.github/actions/unit_test
-      - name: Release
+      - name: release
         uses: goreleaser/goreleaser-action@v1
         with:
           version: latest
