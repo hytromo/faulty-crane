@@ -1,7 +1,7 @@
-project_name: faulty-creane
+project_name: faulty-crane
 builds:
-  - id: faulty-creane
-    main: .
+  - id: faulty-crane
+    main: ./cli/faulty-crane/
     env:
       - CGO_ENABLED=0
     goos:
