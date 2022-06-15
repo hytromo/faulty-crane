@@ -7,8 +7,10 @@ runs:
       shell: bash
       run: |
         go vet ./...
-        golint ./...
         go test -v -race -covermode=atomic -coverprofile=coverage.out ./...
+
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v3
 
     - uses: codecov/codecov-action@v2
       name: Upload to Codecov

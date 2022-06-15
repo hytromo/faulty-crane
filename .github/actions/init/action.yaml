@@ -13,5 +13,3 @@ runs:
       shell: bash
       run: |
         go get ./...
-        go get -u golang.org/x/lint/golint
-        export PATH="${PATH}:$(dirname $(go list -f {{.Target}} golang.org/x/lint/golint))"
