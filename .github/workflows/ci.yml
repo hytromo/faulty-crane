@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  ci:
+  unit_test:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repo
@@ -15,5 +15,28 @@ jobs:
           fetch-depth: 0
       - name: init
         uses: ./.github/actions/init
-      - name: install deps
+      - name: unit test
         uses: ./.github/actions/unit_test
+  integration_test:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        registry: [dockerhub]
+        include:
+          - registry: dockerhub
+            registry_url: ""
+            registry_username: ${{ secrets.DOCKERHUB_USERNAME }}
+            registry_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: init
+        uses: ./.github/actions/init
+      - name: integration test in ${{ matrix.registry }}
+        uses: ./.github/actions/integration_test
+        with:
+          container_registry_url: ${{ matrix.registry_url }}
+          container_registry_username: ${{ matrix.registry_username }}
+          container_registry_password: ${{ matrix.registry_password }}

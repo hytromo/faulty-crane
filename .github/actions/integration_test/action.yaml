@@ -1,0 +1,44 @@
+name: Integration test
+description: Installs the dependencies required according to the type of changed projects and places required files where they should be
+inputs:
+  container_registry_url:
+    description: "The container registry url"
+    required: false # for dockerhub this can be empty
+  container_registry_username:
+    description: "The container registry username"
+    required: true
+  container_registry_password:
+    description: "The container registry password"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Login to container registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ inputs.container_registry_url }}
+        username: ${{ inputs.container_registry_username }}
+        password: ${{ inputs.container_registry_password }}
+
+    - name: Start minikube
+      uses: medyagh/setup-minikube@master
+
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+    - name: Install Yarn
+      shell: bash
+      run: |
+        npm install -g yarn
+
+    - name: Generate random images
+      shell: bash
+      env:
+        CONTAINER_REGISTRY_URL: ${{ inputs.container_registry_url }}
+        CONTAINER_REGISTRY_USERNAME: ${{ inputs.container_registry_username }}
+      run: |
+        cd test
+        yarn install --frozen-lockfile
+        yarn run ts-node populate_registry.ts

@@ -6,3 +6,6 @@ cover.*
 *.plan
 *.out
 dist/*
+# https://github.com/nektos/act default secrets file location
+.secrets
+node_modules
