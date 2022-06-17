@@ -1,4 +1,5 @@
 name: Unit test
+description: "Runs the unit tests"
 
 runs:
   using: "composite"
