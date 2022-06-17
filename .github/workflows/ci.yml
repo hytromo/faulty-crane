@@ -25,8 +25,8 @@ jobs:
         include:
           - registry: dockerhub
             registry_url: ""
-            registry_username: ${{ secrets.DOCKERHUB_USERNAME }}
-            registry_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+            registry_username: DOCKERHUB_USERNAME
+            registry_password: DOCKERHUB_PASSWORD
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -38,5 +38,5 @@ jobs:
         uses: ./.github/actions/integration_test
         with:
           container_registry_url: ${{ matrix.registry_url }}
-          container_registry_username: ${{ matrix.registry_username }}
-          container_registry_password: ${{ matrix.registry_password }}
+          container_registry_username: ${{ secrets[matrix.registry_username] }}
+          container_registry_password: ${{ secrets[matrix.registry_password] }}
