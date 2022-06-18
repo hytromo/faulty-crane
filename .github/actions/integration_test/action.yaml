@@ -48,17 +48,6 @@ runs:
       run: |
         cd test
         yarn install --frozen-lockfile
-        yarn run ts-node populate_registry_and_cluster.ts
-
-    - name: Deploy images inside the k8s cluster
-      shell: bash
-      env:
-        CONTAINER_REGISTRY_URL: ${{ inputs.container_registry_url }}
-        CONTAINER_REGISTRY_USERNAME: ${{ inputs.container_registry_username }}
-        CONTAINER_REGISTRY_PASSWORD: ${{ inputs.container_registry_password }}
-      run: |
-        cd test
-        yarn install --frozen-lockfile
         # also generates appropriate faulty-crane configuration
         yarn run ts-node populate_registry_and_cluster.ts
 
@@ -68,5 +57,8 @@ runs:
         FAULTY_CRANE_CONTAINER_REGISTRY_USERNAME: ${{ inputs.container_registry_username }}
         FAULTY_CRANE_REGISTRY_PASSWORD: ${{ inputs.container_registry_password }}
       run: |
+        pwd
+        ls
+        cd test
         ./faulty-crane plan -config faulty-crane.json -out plan.json --raw-plan
         cat plan.json
