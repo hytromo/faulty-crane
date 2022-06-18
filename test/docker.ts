@@ -72,9 +72,9 @@ export const buildAndPushConfigImages = async () => {
 		}
 	}
 
-	buildNPushImages(olderImagesBuildAndPush)
+	await buildNPushImages(olderImagesBuildAndPush)
 
-	await sleep(60 * 2 * 1000)
+	// await sleep(60 * 2 * 1000)
 
-	buildNPushImages(newerImagesBuildAndPush)
+	await buildNPushImages(newerImagesBuildAndPush)
 }

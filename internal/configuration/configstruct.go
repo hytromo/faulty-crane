@@ -71,6 +71,7 @@ type ApplyPlanCommonSubcommandOptions struct {
 	GoogleContainerRegistry    GoogleContainerRegistry
 	DockerhubContainerRegistry DockerhubContainerRegistry
 	Keep                       KeepImages
+	RawPlan                    bool
 }
 
 // ConfigureSubcommandOptions defines the options of the configure subcommand

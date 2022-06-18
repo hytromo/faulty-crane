@@ -115,6 +115,8 @@ func addApplyPlanCommonVars(cmd *flag.FlagSet, appOptions *configuration.AppOpti
 	atLeastStr := ""
 	registerStrParameter(cmd, &atLeastStr, "keep-at-least", EnvPrefix+"KEEP_AT_LEAST", "", "at least that many images will be kept in this specific repo, prioritising the younger ones")
 
+	registerBoolParameter(cmd, &appOptions.ApplyPlanCommon.RawPlan, "raw-plan", EnvPrefix+"RAW_PLAN", false, "do not compress the result plan file")
+
 	k8sClustersStr := ""
 	imageTags := ""
 	imageDigests := ""

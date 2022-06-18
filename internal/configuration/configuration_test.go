@@ -98,7 +98,7 @@ func TestPlanRW(t *testing.T) {
 		t.Error("Not enough repos in the plan to test")
 	}
 
-	WritePlan(plan, tmpFile.Name())
+	WritePlan(plan, tmpFile.Name(), true)
 	newPlan := ReadPlan(tmpFile.Name(), true)
 
 	if !reflect.DeepEqual(plan, newPlan) {

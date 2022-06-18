@@ -11,3 +11,5 @@ dist/*
 node_modules
 # generated on the fly
 values.yaml
+# any leftover executable
+faulty-crane

@@ -54,8 +54,8 @@ func CreateNew(params ConfigureSubcommandOptions, reader io.Reader) {
 }
 
 // WritePlan writes the parsed repos in a plan file; the plan file can then be used to remove specific images
-func WritePlan(parsedRepos []containerregistry.Repository, planPath string) {
-	err := fileutil.SaveJSON(planPath, parsedRepos, true)
+func WritePlan(parsedRepos []containerregistry.Repository, planPath string, doCompress bool) {
+	err := fileutil.SaveJSON(planPath, parsedRepos, doCompress)
 	if err != nil {
 		log.Fatal("Could not write plan")
 	}

@@ -28,17 +28,45 @@ runs:
       uses: actions/setup-node@v3
       with:
         node-version: 16
+
     - name: Install Yarn
       shell: bash
       run: |
         npm install -g yarn
 
-    - name: Generate random images
+    - name: Build faulty crane
+      shell: bash
+      run: |
+        go build -o test/faulty-crane cli/faulty-crane/*.go
+
+    - name: Deploy images inside the k8s cluster
       shell: bash
       env:
         CONTAINER_REGISTRY_URL: ${{ inputs.container_registry_url }}
         CONTAINER_REGISTRY_USERNAME: ${{ inputs.container_registry_username }}
+        CONTAINER_REGISTRY_PASSWORD: ${{ inputs.container_registry_password }}
       run: |
         cd test
         yarn install --frozen-lockfile
-        yarn run ts-node populate_registry.ts
+        yarn run ts-node populate_registry_and_cluster.ts
+
+    - name: Deploy images inside the k8s cluster
+      shell: bash
+      env:
+        CONTAINER_REGISTRY_URL: ${{ inputs.container_registry_url }}
+        CONTAINER_REGISTRY_USERNAME: ${{ inputs.container_registry_username }}
+        CONTAINER_REGISTRY_PASSWORD: ${{ inputs.container_registry_password }}
+      run: |
+        cd test
+        yarn install --frozen-lockfile
+        # also generates appropriate faulty-crane configuration
+        yarn run ts-node populate_registry_and_cluster.ts
+
+    - name: Run faulty-crane
+      shell: bash
+      env:
+        FAULTY_CRANE_CONTAINER_REGISTRY_USERNAME: ${{ inputs.container_registry_username }}
+        FAULTY_CRANE_REGISTRY_PASSWORD: ${{ inputs.container_registry_password }}
+      run: |
+        ./faulty-crane plan -config faulty-crane.json -out plan.json --raw-plan
+        cat plan.json

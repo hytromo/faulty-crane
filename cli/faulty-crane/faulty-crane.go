@@ -62,7 +62,7 @@ func main() {
 				return
 			}
 
-			configuration.WritePlan(parsedRepos, options.Plan)
+			configuration.WritePlan(parsedRepos, options.Plan, !options.RawPlan)
 
 			// if the user used a config to produce the dry run, they can use the same config to execute the plan, so here we prepare fully the command for them
 			configStrInfo := ""
