@@ -5,6 +5,7 @@ tmp/**/*
 cover.*
 *.plan
 *.out
+plan.json
 dist/*
 # https://github.com/nektos/act default secrets file location
 .secrets
