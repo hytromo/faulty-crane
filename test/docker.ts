@@ -3,15 +3,15 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import util from 'util';
-import { CONTAINER_REGISTRY_REPO_PREFIX, CONTAINER_REGISTRY_URL, RepoAndImageEntry } from "./local_config";
-const exec = util.promisify(require('child_process').exec);
+import { config, CONTAINER_REGISTRY_REPO_PREFIX, CONTAINER_REGISTRY_URL, RepoAndImageEntry, sleep, TagKey } from "./local_config";
+export const exec = util.promisify(require('child_process').exec);
 import Dockerode from 'dockerode';
 const replaceInFile = require('replace-in-file');
 const docker = new Dockerode();
 
-const getImageName = (repoName: string, imageTag: string) => `${CONTAINER_REGISTRY_URL}${CONTAINER_REGISTRY_REPO_PREFIX}/${repoName}:${imageTag}`
+export const getImageName = (repoName: string, imageTag: string) => `${CONTAINER_REGISTRY_URL}${CONTAINER_REGISTRY_REPO_PREFIX}/${repoName}:${imageTag}`
 
-export const buildNPushImages = async (entries: RepoAndImageEntry[]) => Promise.map(entries, async ({ repoName, imageTag }) => {
+const buildNPushImages = async (entries: RepoAndImageEntry[]) => Promise.map(entries, async ({ repoName, imageTag }) => {
 	// copy and template the dockerfile to produce a unique docker image
 	const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'faulty-crane-integration-testing'));
 	const sourceDockerfileTemplate = path.join(__dirname, 'Dockerfile.tpl')
@@ -40,3 +40,41 @@ export const buildNPushImages = async (entries: RepoAndImageEntry[]) => Promise.
 
 	return imageName
 }, { concurrency: 5 })
+
+
+export const buildAndPushConfigImages = async () => {
+	// only one image is to be kept due to age, let's upload it later so it's fresh and won't be deleted
+	const olderImagesBuildAndPush: RepoAndImageEntry[] = []
+	const newerImagesBuildAndPush: RepoAndImageEntry[] = []
+	for (const repo of config) {
+		for (const _tagTypeKey in repo.tags) {
+			const tagTypeKey = _tagTypeKey as TagKey
+			const allTags = repo.tags[tagTypeKey];
+			if (tagTypeKey !== 'ageKept') {
+				if (allTags) {
+					for (const imageTag of allTags) {
+						olderImagesBuildAndPush.push({
+							repoName: repo.name,
+							imageTag,
+						})
+					}
+				}
+			} else {
+				if (allTags) {
+					for (const imageTag of allTags) {
+						newerImagesBuildAndPush.push({
+							repoName: repo.name,
+							imageTag,
+						})
+					}
+				}
+			}
+		}
+	}
+
+	buildNPushImages(olderImagesBuildAndPush)
+
+	await sleep(60 * 2 * 1000)
+
+	buildNPushImages(newerImagesBuildAndPush)
+}

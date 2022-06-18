@@ -1,0 +1,9 @@
+apiVersion: v2
+name: tester
+description: A Helm chart to test out faulty-crane
+
+type: application
+
+version: 0.1.0
+
+appVersion: "1.1.0"

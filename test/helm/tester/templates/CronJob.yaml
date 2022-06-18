@@ -1,0 +1,26 @@
+{{- range $.Values.cronjobs }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .name | quote }}
+  namespace: {{ .namespace | quote }}
+spec:
+  schedule: "*/10 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: {{ .name | quote }}
+              image: {{ .image | quote }}
+              command: ["sleep", "5"]
+              resources:
+                requests:
+                  cpu: "20m"
+                  memory: "10M"
+                limits:
+                  cpu: "20m"
+                  memory: "10M"
+          restartPolicy: OnFailure
+---
+{{- end }}    

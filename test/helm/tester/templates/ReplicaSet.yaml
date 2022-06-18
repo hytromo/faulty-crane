@@ -1,0 +1,30 @@
+{{- range $.Values.replicasets }}
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: {{ .name | quote }}
+  namespace: {{ .namespace | quote }}
+  labels:
+    name: {{ .name | quote }}
+spec:
+  selector:
+    matchLabels:
+      name: {{ .name | quote }}
+  template:
+    metadata:
+      labels:
+        name: {{ .name | quote }}
+    spec:
+      containers:
+      - name: {{ .name | quote }}
+        image: {{ .image | quote }}
+        command: ["sleep", "inf"]
+        resources:
+          requests:
+            cpu: "20m"
+            memory: "10M"
+          limits:
+            cpu: "20m"
+            memory: "10M"
+---
+{{- end }}

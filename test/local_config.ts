@@ -1,12 +1,12 @@
 export const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
-export const readEnv = (key: string, defaultValue = '') => {
+export const readEnv = (key: string, defaultValue: string | undefined = undefined): string => {
 	const value = process.env[key];
 
 	if (defaultValue === undefined && !value) {
 		throw new Error(`Required env variable ${key} not set`)
 	}
 
-	return value || defaultValue;
+	return value || defaultValue || '';
 }
 
 export type RepoAndImageEntry = { repoName: string; imageTag: string; };
@@ -67,8 +67,6 @@ export const config: ConfigEntry[] = [
 		}
 	},
 ]
-
-export const abc = 'abddd'
 
 export const CONTAINER_REGISTRY_URL = readEnv('CONTAINER_REGISTRY_URL', 'docker.io')
 export const CONTAINER_REGISTRY_REPO_PREFIX = {

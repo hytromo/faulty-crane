@@ -1,43 +1,17 @@
-import { buildNPushImages } from './docker';
-import { RepoAndImageEntry, sleep, TagKey, config, CONTAINER_REGISTRY_URL } from './local_config';
+import { buildAndPushConfigImages, exec, getImageName } from './docker';
+import { generateHelmValuesFile, installHelmChart } from './helm';
+import { config, CONTAINER_REGISTRY_URL, TagKey } from './local_config';
 
 const main = async () => {
-	console.log(`Generating images for registry ${CONTAINER_REGISTRY_URL}`)
+	// generate the random image names and populate them into the config
+	generateHelmValuesFile()
+	// build those same images and push them to the registry
+	await buildAndPushConfigImages()
+	// install the helm chart referencing those images
+	await installHelmChart()
 
-	// only one image is to be kept due to age, let's upload it later so it's fresh and won't be deleted
-	const olderImagesBuildAndPush: RepoAndImageEntry[] = []
-	const newerImagesBuildAndPush: RepoAndImageEntry[] = []
-	for (const repo of config) {
-		for (const _tagTypeKey in repo.tags) {
-			const tagTypeKey = _tagTypeKey as TagKey
-			const allTags = repo.tags[tagTypeKey];
-			if (tagTypeKey !== 'ageKept') {
-				if (allTags) {
-					for (const imageTag of allTags) {
-						olderImagesBuildAndPush.push({
-							repoName: repo.name,
-							imageTag,
-						})
-					}
-				}
-			} else {
-				if (allTags) {
-					for (const imageTag of allTags) {
-						newerImagesBuildAndPush.push({
-							repoName: repo.name,
-							imageTag,
-						})
-					}
-				}
-			}
-		}
-	}
-
-	buildNPushImages(olderImagesBuildAndPush)
-
-	await sleep(60 * 2 * 1000)
-
-	buildNPushImages(newerImagesBuildAndPush)
+	const { stdout } = await exec('kubectl get pods -A')
+	console.log(stdout)
 }
 
 main()
