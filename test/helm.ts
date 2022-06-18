@@ -80,5 +80,5 @@ export const generateHelmValuesFile = (iteration = 1) => {
 }
 
 export const installHelmChart = async () => {
-	await exec('helm upgrade --wait --install tester ./tester')
+	await exec('helm upgrade --wait --install tester ./helm/tester')
 }
