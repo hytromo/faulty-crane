@@ -56,7 +56,7 @@ runs:
       env:
         FAULTY_CRANE_CONTAINER_REGISTRY_USERNAME: ${{ inputs.container_registry_username }}
         FAULTY_CRANE_CONTAINER_REGISTRY_PASSWORD: ${{ inputs.container_registry_password }}
-        FAULTY_CRANE_CONFIG: config.json
+        FAULTY_CRANE_CONFIG: faulty-crane.json
         FAULTY_CRANE_PLAN: plan.json
       run: |
         cd test
