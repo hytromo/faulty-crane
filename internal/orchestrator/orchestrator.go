@@ -210,7 +210,12 @@ func (orchestrator Orchestrator) GetAllRepos() []cr.Repository {
 	// while the jobs are being done by the workers, we are merging all the results into one
 	allRepos := []cr.Repository{}
 	for range repos {
-		allRepos = append(allRepos, <-parsedReposChan)
+		parsedRepo := <-parsedReposChan
+
+		if len(parsedRepo.Images) > 0 {
+			allRepos = append(allRepos, parsedRepo)
+		}
+
 		bar.Increment()
 	}
 

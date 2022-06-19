@@ -2,7 +2,6 @@ package reporter
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"sort"
 	"strconv"
@@ -15,6 +14,7 @@ import (
 	"github.com/hytromo/faulty-crane/internal/utils/stringutil"
 	color "github.com/logrusorgru/aurora"
 	tablewriter "github.com/olekukonko/tablewriter"
+	log "github.com/sirupsen/logrus"
 )
 
 // ReportRepositoriesStatus prints out in a nice way the status of the repositories, e.g. what needs to be deleted and for what reason
@@ -106,8 +106,11 @@ func ReportRepositoriesStatus(repos []containerregistry.Repository, showAnalytic
 
 				table.Rich(tableValues, tableColors)
 			}
-			table.Render()
-			fmt.Println()
+
+			if deleteCount+keepCount > 0 {
+				table.Render()
+				fmt.Println()
+			}
 		}
 	} else {
 		headers := []string{"repo", "deleted", "deleted size", "most recent to be deleted"}
@@ -182,31 +185,40 @@ func ReportRepositoriesStatus(repos []containerregistry.Repository, showAnalytic
 
 			table.Rich(tableValues, tableColors)
 		}
-		fmt.Println()
-		table.Render()
+
+		if deleteCount+keepCount > 0 {
+			fmt.Println()
+			table.Render()
+		}
 	}
 
 	totalBytes := deleteTotalSizeBytes + keepTotalSizeBytes
 	totalImages := deleteCount + keepCount
 
-	fmt.Println(
-		deleteCount,
-		"image(s) will be deleted",
-		color.Red(
-			fmt.Sprintf(
-				"/ %v / %.2f%% of total images / %.2f%% of total size",
-				stringutil.HumanFriendlySize(deleteTotalSizeBytes),
-				float64(deleteCount)/float64(totalImages)*100,
-				float64(deleteTotalSizeBytes)/float64(totalBytes)*100,
-			),
-		),
-	)
+	if totalImages == 0 {
+		fmt.Println()
+		log.Info("No images found")
 
-	fmt.Println(
-		keepCount,
-		"image(s) will be kept",
-		color.Green(fmt.Sprintf("/ %v", stringutil.HumanFriendlySize(keepTotalSizeBytes))),
-	)
+	} else {
+		fmt.Println(
+			deleteCount,
+			"image(s) will be deleted",
+			color.Red(
+				fmt.Sprintf(
+					"/ %v / %.2f%% of total images / %.2f%% of total size",
+					stringutil.HumanFriendlySize(deleteTotalSizeBytes),
+					float64(deleteCount)/float64(totalImages)*100,
+					float64(deleteTotalSizeBytes)/float64(totalBytes)*100,
+				),
+			),
+		)
+
+		fmt.Println(
+			keepCount,
+			"image(s) will be kept",
+			color.Green(fmt.Sprintf("/ %v", stringutil.HumanFriendlySize(keepTotalSizeBytes))),
+		)
+	}
 
 	fmt.Println()
 }

@@ -45,7 +45,7 @@ func main() {
 		if appOptions.Apply.SubcommandEnabled && options.Plan != "" {
 			// normal run, reading from an existent plan file the parsed repos
 			log.Infof("Reading from plan file %v\n", options.Plan)
-			parsedRepos = configuration.ReadPlan(options.Plan, true)
+			parsedRepos = configuration.ReadPlan(options.Plan, !options.RawPlan)
 		} else {
 			orchestrator := orchestrator.NewOrchestrator(&appOptions)
 			orchestrator.Init()
@@ -70,6 +70,11 @@ func main() {
 				configStrInfo = fmt.Sprintf(" -config %v", options.Config)
 			}
 
+			rawPlanInfo := ""
+			if options.RawPlan {
+				rawPlanInfo = " --raw-plan"
+			}
+
 			log.Infof("Plan saved to %v", options.Plan)
 
 			fmt.Printf(
@@ -77,8 +82,8 @@ func main() {
 			)
 
 			fmt.Printf(
-				"    %v apply%v %v",
-				filepath.Base(os.Args[0]), configStrInfo, options.Plan,
+				"    %v apply%v%v %v",
+				filepath.Base(os.Args[0]), configStrInfo, rawPlanInfo, options.Plan,
 			)
 
 			fmt.Printf(
