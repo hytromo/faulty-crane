@@ -56,9 +56,18 @@ runs:
       env:
         FAULTY_CRANE_CONTAINER_REGISTRY_USERNAME: ${{ inputs.container_registry_username }}
         FAULTY_CRANE_CONTAINER_REGISTRY_PASSWORD: ${{ inputs.container_registry_password }}
+        FAULTY_CRANE_CONFIG: config.json
+        FAULTY_CRANE_PLAN: plan.json
       run: |
-        pwd
-        ls
         cd test
-        ./faulty-crane plan -config faulty-crane.json -out plan.json --raw-plan
-        cat plan.json
+
+        CONFIG_NAME=faulty-crane.json
+        PLAN_NAME=plan.json
+
+        ./faulty-crane plan --raw-plan
+
+        # TODO: check plan validity before execution
+
+        ./faulty-crane apply --raw-plan
+
+        # TODO: confirm image deletion by external means
